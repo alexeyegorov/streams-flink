@@ -1,0 +1,14 @@
+<container id="example">
+
+	<stream id="data" class="stream.generator.RandomStream" limit="100000" />
+	
+	<process input="data">
+		<!--  -->
+<!--
+		<PrintData />
+		<stream.net.DataTap port="9000" />
+-->
+		<stream.demo.Count />
+	</process>
+	
+</container>
