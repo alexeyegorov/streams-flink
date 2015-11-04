@@ -65,7 +65,7 @@ public class ProcessHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * backtype.storm.topology.TopologyBuilder)
+     * org.apache.flink.storm.api.FlinkTopologyBuilder)
      */
     @Override
     public void handle(Element el, StreamTopology st, FlinkTopologyBuilder builder) throws Exception {
