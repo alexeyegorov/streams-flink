@@ -204,11 +204,11 @@ public class StreamTopology {
                 String source = subscription.source();
                 String stream = subscription.stream();
                 if (stream.equals("default")) {
-                    log.info("connecting '{}' to none-group '{}'", subscription.subscriber(), source);
-                    subscriber.noneGrouping(source);
+                    log.info("connecting '{}' to shuffle-group '{}'", subscription.subscriber(), source);
+                    subscriber.shuffleGrouping(source);
                 } else {
-                    log.info("connecting '{}' to none-group '{}:" + stream + "'", subscription.subscriber(), source);
-                    subscriber.noneGrouping(source, stream);
+                    log.info("connecting '{}' to shuffle-group '{}:" + stream + "'", subscription.subscriber(), source);
+                    subscriber.shuffleGrouping(source, stream);
                 }
                 it.remove();
             } else {
