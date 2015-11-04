@@ -32,9 +32,9 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-			<id>central</id>
+			<id>apache-repository</id>
 			<name>Maven Repository Switchboard</name>
-			<url>http://repo1.maven.org/maven2</url>
+			<url>http://repository.apache.org/content/groups/snapshots/</url>
 		</repository>
 	</repositories>
 
