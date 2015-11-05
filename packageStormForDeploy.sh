@@ -5,7 +5,7 @@ process_path="examples/alexey-queues.xml"
 run=false
 build=false
 nimbus="localhost"
-stormmainclass="storm.deploy"
+flinkmainclass="flink.deploy"
 
 # handle the argument options
 function USAGE {
@@ -26,7 +26,7 @@ while getopts ":p:n:m: :rb" optname
       "r") run=true;;
       "b") build=true;;
       "n") nimbus=$OPTARG;;
-      "m") stormmainclass=$OPTARG;;
+      "m") flinkmainclass=$OPTARG;;
       "?") USAGE;;
       ":")
         echo "No argument value for option $OPTARG"
@@ -44,12 +44,12 @@ echo "Using following process as topology: $process_path"
 echo "Rebuild: $build"
 echo "Running: $run"
 echo "Nimbus host: $nimbus"
-echo "Storm mainclass: $stormmainclass"
+echo "Storm mainclass: $flinkmainclass"
 
 # stop and print the usage if both r and b were not set
 # or if mainclass is set to sth different then flink.{deploy,run}
 if ( ( [ ${run} == "false" ] ) && ( [ ${build} == "false" ] ) ) || \
-        ( [[ ! ${stormmainclass} =~ ^flink\.(deploy|run)$ ]] ) ; then
+        ( [[ ! ${flinkmainclass} =~ ^flink\.(deploy|run)$ ]] ) ; then
     USAGE
 fi
 
@@ -59,7 +59,7 @@ if ${build}; then
     mvn -P deploy,standalone package
 
     # package for local start
-    mvn -Dstorm.mainclass=${stormmainclass} -P standalone,!deploy package
+    mvn -Dflink.mainclass=${flinkmainclass} -P standalone,!deploy package
 fi
 
 # run the deployment process
@@ -68,6 +68,6 @@ if ${run}; then
     java -jar \
         -Dnimbus.host=${nimbus} \
         -Dstorm.jar=target/streams-storm-0.9.22-SNAPSHOT-storm-provided.jar \
-        target/streams-storm-0.9.22-SNAPSHOT-storm-compiled.jar \
+        target/streams-flink-0.9.22-SNAPSHOT-flink-compiled.jar \
         ${process_path}
 fi
