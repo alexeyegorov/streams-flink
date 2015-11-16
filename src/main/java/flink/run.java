@@ -116,26 +116,6 @@ public class run {
         return out.toString();
     }
 
-    // TODO unused. remove?
-    public static Element findElementByUUID(Element el, String uuid) {
-        String id = el.getAttribute(UUID_ATTRIBUTE);
-        if (uuid.equals(id)) {
-            return el;
-        }
-
-        NodeList list = el.getChildNodes();
-        for (int i = 0; i < list.getLength(); i++) {
-            Node node = list.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-
-                Element found = findElementByUUID((Element) node, uuid);
-                if (found != null)
-                    return found;
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Method to start cluster and run XML configuration as flink topology on it while setting the
