@@ -13,7 +13,7 @@ function USAGE {
     echo "Usage:"
     echo "-p    <path to XML process file>      if not defined default value will be used"
     echo "-n    <nimbus host ip adress>         localhost as default"
-    echo "-m    <storm.deploy|storm.run>        define mainclass to deploy or run local cluster"
+    echo "-m    <flink.deploy|flink.run>        define mainclass to deploy or run local cluster"
     echo "-r                                    run the deployment process"
     echo "-b                                    build new packages"
     exit 1
@@ -56,10 +56,10 @@ fi
 # rebuild (package) the needed jars
 if ${build}; then
     # package for deployment
-    mvn -P deploy,standalone package
+    mvn -P deploy,standalone -U package -DskipTests
 
     # package for local start
-    mvn -Dflink.mainclass=${flinkmainclass} -P standalone,!deploy package
+    mvn -Dflink.mainclass=${flinkmainclass} -U -P standalone,!deploy package -DskipTests
 fi
 
 # run the deployment process
@@ -67,7 +67,7 @@ if ${run}; then
     # start the deployment
     java -jar \
         -Dnimbus.host=${nimbus} \
-        -Dstorm.jar=target/streams-storm-0.9.22-SNAPSHOT-storm-provided.jar \
-        target/streams-flink-0.9.22-SNAPSHOT-flink-compiled.jar \
+        -Dstorm.jar=target/streams-flink-0.9.23-SNAPSHOT-flink-provided.jar \
+        target/streams-flink-0.9.23-SNAPSHOT-flink-compiled.jar \
         ${process_path}
 fi
