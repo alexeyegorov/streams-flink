@@ -6,7 +6,7 @@
     <groupId>de.sfb876</groupId>
     <name>streams-flink</name>
     <artifactId>${artifactid}</artifactId>
-    <version>0.9.22-SNAPSHOT</version>
+    <version>0.9.23-SNAPSHOT</version>
 
 
     <properties>
@@ -14,17 +14,13 @@
         <flink.scope>provided</flink.scope>
         <flink.mainclass>flink.deploy</flink.mainclass>
         <skipTests>true</skipTests>
-        <streams.version>[0.9.22-SNAPSHOT,)</streams.version>
+        <streams.version>0.9.24-SNAPSHOT</streams.version>
         <artifactid>streams-flink</artifactid>
         <flink.version>1.0-SNAPSHOT</flink.version>
     </properties>
 
 
     <repositories>
-        <repository>
-            <id>github-releases</id>
-            <url>http://oss.sonatype.org/content/repositories/github-releases/</url>
-        </repository>
         <repository>
             <id>sonatype-snapshots</id>
             <name>sonatype Snapshot Repository</name>
@@ -222,6 +218,11 @@
             <version>${streams.version}</version>
         </dependency>
         <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-performance</artifactId>
+            <version>0.9.24-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
             <version>${flink.version}</version>
@@ -283,6 +284,11 @@
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
             <version>0.9.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.4</version>
         </dependency>
     </dependencies>
 
