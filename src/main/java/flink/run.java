@@ -137,6 +137,9 @@ public class run {
 
         stream.runtime.StreamRuntime.loadUserProperties();
 
+        System.setProperty("rlog.host", "127.0.0.1");
+        System.setProperty("rlog.token", "ab09cfe1d60b602cb7600b5729da939f");
+
         ShutdownHook shutdown = new ShutdownHook();
         Runtime.getRuntime().addShutdownHook(shutdown);
 
@@ -154,8 +157,9 @@ public class run {
         Document decxml = DocumentEncoder.decodeDocument(enc);
         log.info("Decoded XML is: {}", XMLUtils.toString(decxml));
 
-        if (enc == null)
+        if (enc == null) {
             return;
+        }
 
         Config conf = new Config();
         conf.setDebug(false);
