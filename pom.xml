@@ -223,6 +223,11 @@
             <version>0.9.24-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-storm</artifactId>
+            <version>0.9.24-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
             <version>${flink.version}</version>
@@ -286,9 +291,9 @@
             <version>0.9.4</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.4</version>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.commons.json</artifactId>
+            <version>2.0.2-incubator</version>
         </dependency>
     </dependencies>
 
