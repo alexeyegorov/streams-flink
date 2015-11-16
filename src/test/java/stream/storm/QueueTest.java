@@ -23,53 +23,56 @@
  */
 package stream.storm;
 
-import static org.junit.Assert.fail;
-
-import java.net.URL;
+import junit.framework.Assert;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
+
 import stream.test.Collector;
+
+import static org.junit.Assert.fail;
 
 /**
  * @author chris
- * 
  */
 public class QueueTest {
 
-	static Logger log = LoggerFactory.getLogger(QueueTest.class);
+    static Logger log = LoggerFactory.getLogger(QueueTest.class);
 
-	@Test
-	public void test() {
-		try {
+    @Test
+    public void test() {
+        try {
 
-			final URL url = QueueTest.class.getResource("/storm-queues.xml");
-			log.info("Running flink topology from {}", url);
-			Thread t = new Thread() {
-				public void run() {
-					try {
-						flink.run.main(url);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			};
-			t.start();
+            final URL url = QueueTest.class.getResource("/storm-queues.xml");
+            log.info("Running flink topology from {}", url);
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        flink.run.main(new String[]{url.getPath()});
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            t.start();
 
-			while (Collector.getCollection().size() < 1000) {
-				log.info("{} items collected, waiting...", Collector
-						.getCollection().size());
-				Thread.sleep(1000);
-			}
+            int waitingTimes = 10;
+            while (Collector.getCollection().size() < 1000 & waitingTimes-- > 0) {
+                log.info("{} items collected, waiting...", Collector.getCollection().size());
+                Thread.sleep(1000);
+            }
 
-			log.info("{} items collected.", Collector.getCollection().size());
-			flink.run.stopLocalCluster();
+            log.info("{} items collected.", Collector.getCollection().size());
+            flink.run.stopLocalCluster();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Not yet implemented");
-		}
-	}
+            Assert.assertEquals(1000, Collector.getCollection().size());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Not yet implemented");
+        }
+    }
 }
