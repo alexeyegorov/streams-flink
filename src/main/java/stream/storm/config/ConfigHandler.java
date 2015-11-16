@@ -33,8 +33,7 @@ import stream.StreamTopology;
  */
 public interface ConfigHandler {
 
-    public boolean handles(Element el);
+    boolean handles(Element el);
 
-    public void handle(Element element, StreamTopology st,
-                       FlinkTopologyBuilder builder) throws Exception;
+    void handle(Element element, StreamTopology st, FlinkTopologyBuilder builder) throws Exception;
 }

@@ -43,7 +43,7 @@ public abstract class ATopologyElementHandler implements ConfigHandler {
 	}
 
 	protected List<String> getInputNames(Element el) {
-		List<String> inputs = new ArrayList<String>();
+		List<String> inputs = new ArrayList<>();
 		String input = el.getAttribute("input");
 		if (input == null)
 			return inputs;

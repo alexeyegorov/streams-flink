@@ -34,7 +34,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,6 +47,7 @@ import backtype.storm.topology.SpoutDeclarer;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;
+import stream.storm.Constants;
 import stream.storm.config.BoltHandler;
 import stream.storm.config.ConfigHandler;
 import stream.storm.config.ProcessHandler;
@@ -62,15 +62,14 @@ import stream.util.XMLUtils;
  */
 public class StreamTopology {
 
-    public final static String UUID_ATTRIBUTE = "stream.flink.uuid";
     static Logger log = LoggerFactory.getLogger(StreamTopology.class);
 
     public final FlinkTopologyBuilder builder;
-    public final Map<String, BoltDeclarer> bolts = new LinkedHashMap<String, BoltDeclarer>();
-    public final Map<String, SpoutDeclarer> spouts = new LinkedHashMap<String, SpoutDeclarer>();
+    public final Map<String, BoltDeclarer> bolts = new LinkedHashMap<>();
+    public final Map<String, SpoutDeclarer> spouts = new LinkedHashMap<>();
     public final Variables variables = new Variables();
 
-    final Set<Subscription> subscriptions = new LinkedHashSet<Subscription>();
+    final Set<Subscription> subscriptions = new LinkedHashSet<>();
 
     /**
      *
@@ -93,22 +92,6 @@ public class StreamTopology {
     }
 
     /**
-     * This method returns an unmodifiable map of bolts. The keys of this map are the bolts'
-     * identifiers.
-     */
-    public Map<String, BoltDeclarer> getBolts() {
-        return Collections.unmodifiableMap(bolts);
-    }
-
-    /**
-     * This method returns an unmodifiable map of spouts. The keys of this map are the spouts'
-     * identifiers.
-     */
-    public Map<String, SpoutDeclarer> getSpouts() {
-        return Collections.unmodifiableMap(spouts);
-    }
-
-    /**
      * Creates a new instance of a StreamTopology based on the given document. This also creates a
      * standard TopologyBuilder to build the associated Storm Topology.
      *
@@ -126,7 +109,7 @@ public class StreamTopology {
 
         final StreamTopology st = new StreamTopology(builder);
 
-        doc = XMLUtils.addUUIDAttributes(doc, UUID_ATTRIBUTE);
+        doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
 
         String xml = XMLUtils.toString(doc);
         DependencyInjection dependencies = new DependencyInjection();
@@ -230,25 +213,6 @@ public class StreamTopology {
 
     public void addSpout(String id, SpoutDeclarer spout) {
         spouts.put(id, spout);
-    }
-
-    protected static List<String> getInputNames(Element el) {
-        List<String> inputs = new ArrayList<String>();
-        String input = el.getAttribute("input");
-        if (input == null)
-            return inputs;
-
-        if (!input.contains(",")) {
-            inputs.add(input.trim());
-            return inputs;
-        }
-
-        for (String in : input.split(",")) {
-            if (in != null && !in.trim().isEmpty()) {
-                inputs.add(in.trim());
-            }
-        }
-        return inputs;
     }
 
     /**

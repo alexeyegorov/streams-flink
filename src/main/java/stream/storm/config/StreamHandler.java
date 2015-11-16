@@ -35,7 +35,6 @@ import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 import stream.storm.StreamSpout;
-import stream.util.XMLElementMatch;
 
 /**
  * @author chris
@@ -102,20 +101,4 @@ public class StreamHandler extends ATopologyElementHandler {
         st.spouts.put(id, spoutDeclarer);
     }
 
-    public static class StreamFinder implements XMLElementMatch {
-        final String id;
-
-        public StreamFinder(String id) {
-            this.id = id;
-        }
-
-        /**
-         * @see stream.util.XMLElementMatch#matches(org.w3c.dom.Element)
-         */
-        @Override
-        public boolean matches(Element el) {
-            return "stream".equalsIgnoreCase(el.getNodeName())
-                    && id.equals(el.getAttribute("id"));
-        }
-    }
 }
