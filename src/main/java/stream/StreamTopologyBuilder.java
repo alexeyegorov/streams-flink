@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -19,6 +20,7 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.SpoutDeclarer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.utils.Utils;
 import stream.storm.AbstractBolt;
 import stream.storm.StreamSpout;
 
@@ -139,6 +141,23 @@ public class StreamTopologyBuilder {
                 //TODO log something
             }
         }
+    }
+
+    public static void runOnLocalCluster(Object topology, Config conf, Long time) {
+        log.info("Starting local cluster...");
+        StreamTopologyBuilder.startLocalCluster();
+        String topId = System.getProperty("id", UUID.randomUUID().toString());
+
+        log.info("########################################################################");
+        log.info("submitting topology...");
+        StreamTopologyBuilder.submitTopology(topId, conf, topology);
+        log.info("########################################################################");
+
+        log.info("Topology submitted.");
+
+        Utils.sleep(time);
+
+        StreamTopologyBuilder.killTopology(topId);
     }
 
     public static class ShutdownHook extends Thread {

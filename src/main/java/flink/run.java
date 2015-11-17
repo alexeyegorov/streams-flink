@@ -32,12 +32,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 import backtype.storm.Config;
-import backtype.storm.utils.Utils;
 import stream.DocumentEncoder;
 import stream.StreamTopology;
+import stream.StreamTopologyBuilder;
 import stream.util.XMLUtils;
 
 /**
@@ -96,27 +95,14 @@ public class run {
         Config conf = new Config();
         conf.setDebug(false);
 
+        // create right stream topology
         StreamTopology st = StreamTopology.build(doc,
                 StreamTopologyBuilder.createFlinkTopologyBuilder());
-
         log.info("Creating stream-topology...");
-
         FlinkTopology topology = st.createFlinkTopology();
 
-        log.info("Starting local cluster...");
-        StreamTopologyBuilder.startLocalCluster();
-
-        log.info("########################################################################");
-        log.info("submitting topology...");
-        String topId = System.getProperty("id", UUID.randomUUID().toString());
-        StreamTopologyBuilder.submitTopology(topId, conf, topology);
-        log.info("########################################################################");
-
-        log.info("Topology submitted.");
-
-        Utils.sleep(time);
-
-        StreamTopologyBuilder.killTopology(topId);
+        // start local cluster and run created topology on it
+        StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);
     }
 
     /**
