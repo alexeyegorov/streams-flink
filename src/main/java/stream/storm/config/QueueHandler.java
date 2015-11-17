@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import backtype.storm.topology.BoltDeclarer;
+import flink.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.QueueBolt;
@@ -59,10 +60,10 @@ public class QueueHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * org.apache.flink.storm.api.FlinkTopologyBuilder)
+     * flink.StreamTopologyBuilder)
      */
     @Override
-    public void handle(Element element, StreamTopology st, FlinkTopologyBuilder builder) throws Exception {
+    public void handle(Element element, StreamTopology st, StreamTopologyBuilder builder) throws Exception {
 
         String id = element.getAttribute("id");
         if (id == null || id.trim().isEmpty()) {

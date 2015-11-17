@@ -172,9 +172,8 @@ public class deploy {
                 config.setNumWorkers(workers);
             }
 
-            StreamTopology topology = StreamTopology.create(doc);
-
-            FlinkTopology flinkTopology = topology.createTopology();
+            StreamTopology topology = StreamTopology.build(doc,
+                    StreamTopologyBuilder.createFlinkTopologyBuilder());
 
             String name = id;
             if (id == null || id.trim().isEmpty()) {
@@ -182,7 +181,7 @@ public class deploy {
             }
 
             log.info("Submitting topology '{}'", name);
-            FlinkSubmitter.submitTopology(name, config, flinkTopology);
+            FlinkSubmitter.submitTopology(name, config, topology.createFlinkTopology());
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -26,6 +26,7 @@ package stream.storm.config;
 import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.w3c.dom.Element;
 
+import flink.StreamTopologyBuilder;
 import stream.StreamTopology;
 
 /**
@@ -35,5 +36,5 @@ public interface ConfigHandler {
 
     boolean handles(Element el);
 
-    void handle(Element element, StreamTopology st, FlinkTopologyBuilder builder) throws Exception;
+    void handle(Element element, StreamTopology st, StreamTopologyBuilder builder) throws Exception;
 }

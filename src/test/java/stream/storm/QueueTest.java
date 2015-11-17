@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
+import flink.StreamTopologyBuilder;
 import stream.test.Collector;
 
 import static org.junit.Assert.fail;
@@ -66,7 +67,7 @@ public class QueueTest {
             }
 
             log.info("{} items collected.", Collector.getCollection().size());
-            flink.run.stopLocalCluster();
+            StreamTopologyBuilder.stopLocalCluster();
 
             Assert.assertEquals(1000, Collector.getCollection().size());
 

@@ -140,7 +140,7 @@ public class run {
         System.setProperty("rlog.host", "127.0.0.1");
         System.setProperty("rlog.token", "ab09cfe1d60b602cb7600b5729da939f");
 
-        ShutdownHook shutdown = new ShutdownHook();
+        StreamTopologyBuilder.ShutdownHook shutdown = new StreamTopologyBuilder.ShutdownHook();
         Runtime.getRuntime().addShutdownHook(shutdown);
 
         InputStream in = url.openStream();
@@ -164,46 +164,27 @@ public class run {
         Config conf = new Config();
         conf.setDebug(false);
 
-        StreamTopology st = StreamTopology.create(doc);
+        StreamTopology st = StreamTopology.build(doc,
+                StreamTopologyBuilder.createFlinkTopologyBuilder());
 
         log.info("Creating stream-topology...");
 
-        FlinkTopology storm = st.createTopology();
+        FlinkTopology topology = st.createFlinkTopology();
 
         log.info("Starting local cluster...");
-        FlinkLocalCluster cluster = startLocalCluster();
+        StreamTopologyBuilder.startLocalCluster();
 
         log.info("########################################################################");
         log.info("submitting topology...");
         String topId = System.getProperty("id", UUID.randomUUID().toString());
-        cluster.submitTopology(topId, conf, storm);
+        StreamTopologyBuilder.submitTopology(topId, conf, topology);
         log.info("########################################################################");
 
         log.info("Topology submitted.");
 
         Utils.sleep(time);
 
-        cluster.killTopology(topId);
-    }
-
-    public static FlinkLocalCluster getLocalCluster() {
-        return localCluster;
-    }
-
-    public static FlinkLocalCluster startLocalCluster() {
-        if (localCluster != null) {
-            log.info("Local cluster {} already running...", localCluster);
-            return localCluster;
-        }
-
-        localCluster = new FlinkLocalCluster();
-        return localCluster;
-    }
-
-    public static void stopLocalCluster() {
-        if (localCluster != null) {
-            localCluster.shutdown();
-        }
+        StreamTopologyBuilder.killTopology(topId);
     }
 
     /**
@@ -236,28 +217,4 @@ public class run {
         main(file.toURI().toURL(), timeValue);
     }
 
-    public static class ShutdownHook extends Thread {
-
-        private Set<String> topologies = new LinkedHashSet<String>();
-
-        public void addTopology(String name) {
-            topologies.add(name);
-        }
-
-        public void run() {
-
-            if (flink.run.getLocalCluster() == null) {
-                log.info("No local cluster started, nothing to shut down...");
-                return;
-            }
-
-            for (String topo : topologies) {
-                log.info("Killing topology '{}'", topo);
-                flink.run.getLocalCluster().killTopology(topo);
-            }
-
-            log.info("Shutting down local cluster...");
-            flink.run.stopLocalCluster();
-        }
-    }
 }

@@ -23,7 +23,6 @@
  */
 package stream.storm.config;
 
-import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -31,6 +30,7 @@ import org.w3c.dom.Element;
 import java.util.List;
 
 import backtype.storm.topology.BoltDeclarer;
+import flink.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.Subscription;
 import stream.runtime.setup.factory.ObjectFactory;
@@ -65,10 +65,10 @@ public class ProcessHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * org.apache.flink.storm.api.FlinkTopologyBuilder)
+     * StreamTopologyBuilder)
      */
     @Override
-    public void handle(Element el, StreamTopology st, FlinkTopologyBuilder builder) throws Exception {
+    public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder) throws Exception {
 
         if (el.getNodeName().equalsIgnoreCase("process")) {
             String id = el.getAttribute(Constants.ID);

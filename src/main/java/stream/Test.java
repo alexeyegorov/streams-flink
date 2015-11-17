@@ -35,6 +35,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import backtype.storm.Config;
+import flink.StreamTopologyBuilder;
 import stream.io.SourceURL;
 import stream.util.XMLUtils;
 
@@ -97,9 +98,10 @@ public class Test {
         config.put(Config.NIMBUS_THRIFT_PORT,
                 new Integer(System.getProperty("nimbus.port", "6627")));
 
-        StreamTopology streamGraph = StreamTopology.build(xml, new FlinkTopologyBuilder());
+        StreamTopology streamGraph = StreamTopology.build(xml,
+                StreamTopologyBuilder.createFlinkTopologyBuilder());
 
-        FlinkSubmitter.submitTopology(id, config, streamGraph.createTopology());
+        FlinkSubmitter.submitTopology(id, config, streamGraph.createFlinkTopology());
 
         // NimbusClient nimbusClient = NimbusClient
         // .getConfiguredClient(config);

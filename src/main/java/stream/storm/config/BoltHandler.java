@@ -34,6 +34,7 @@ import java.util.Map;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IRichBolt;
+import flink.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 
@@ -59,10 +60,10 @@ public class BoltHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * org.apache.flink.storm.api.FlinkTopologyBuilder)
+     * flink.StreamTopologyBuilder)
      */
     @Override
-    public void handle(Element el, StreamTopology st, FlinkTopologyBuilder builder)
+    public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder)
             throws Exception {
 
         if (!handles(el))

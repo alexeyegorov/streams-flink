@@ -25,7 +25,6 @@ package stream;
 
 import org.apache.flink.storm.api.FlinkSubmitter;
 import org.apache.flink.storm.api.FlinkTopology;
-import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -42,8 +41,10 @@ import java.util.Map;
 import java.util.Set;
 
 import backtype.storm.Config;
+import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.SpoutDeclarer;
+import flink.StreamTopologyBuilder;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;
@@ -64,7 +65,7 @@ public class StreamTopology {
 
     static Logger log = LoggerFactory.getLogger(StreamTopology.class);
 
-    public final FlinkTopologyBuilder builder;
+    public final StreamTopologyBuilder builder;
     public final Map<String, BoltDeclarer> bolts = new LinkedHashMap<>();
     public final Map<String, SpoutDeclarer> spouts = new LinkedHashMap<>();
     public final Variables variables = new Variables();
@@ -75,11 +76,11 @@ public class StreamTopology {
      *
      * @param builder
      */
-    private StreamTopology(FlinkTopologyBuilder builder) {
+    private StreamTopology(StreamTopologyBuilder builder) {
         this.builder = builder;
     }
 
-    public FlinkTopologyBuilder getTopologyBuilder() {
+    public StreamTopologyBuilder getTopologyBuilder() {
         return builder;
     }
 
@@ -98,14 +99,14 @@ public class StreamTopology {
      * @param doc The DOM document that defines the topology.
      */
     public static StreamTopology create(Document doc) throws Exception {
-        return build(doc, new FlinkTopologyBuilder());
+        return build(doc, StreamTopologyBuilder.createFlinkTopologyBuilder());
     }
 
     /**
      * Creates a new instance of a StreamTopology based on the given document and using the
      * specified TopologyBuilder.
      */
-    public static StreamTopology build(Document doc, FlinkTopologyBuilder builder) throws Exception {
+    public static StreamTopology build(Document doc, StreamTopologyBuilder builder) throws Exception {
 
         final StreamTopology st = new StreamTopology(builder);
 
@@ -219,24 +220,11 @@ public class StreamTopology {
      * This method creates a new instance of type StormTopology based on the topology that has been
      * created from the DOM document.
      */
-    public FlinkTopology createTopology() {
-        return builder.createTopology();
+    public FlinkTopology createFlinkTopology() {
+        return (FlinkTopology) builder.createTopology();
     }
 
-    public static void main(String[] args) throws Exception {
-
-        if (args.length != 1) {
-            System.err.println("Missing XML definition (base64 encoded)!");
-            return;
-        }
-
-        Document doc = DocumentEncoder.decodeDocument(args[0]);
-        Config conf = new Config();
-        conf.setNumWorkers(20);
-
-        StreamTopology streamTop = build(doc, new FlinkTopologyBuilder());
-        FlinkTopology topology = streamTop.getTopologyBuilder().createTopology();
-
-        FlinkSubmitter.submitTopology("test", conf, topology);
+    public StormTopology createStormTopology() {
+        return (StormTopology) builder.createTopology();
     }
 }
