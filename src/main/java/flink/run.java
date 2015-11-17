@@ -23,33 +23,16 @@
  */
 package flink;
 
-import org.apache.flink.storm.api.FlinkLocalCluster;
 import org.apache.flink.storm.api.FlinkTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.File;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.URL;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import backtype.storm.Config;
 import backtype.storm.utils.Utils;
@@ -67,55 +50,6 @@ public class run {
 
     static Logger log = LoggerFactory.getLogger(run.class);
     public final static String UUID_ATTRIBUTE = "id";
-    private static FlinkLocalCluster localCluster;
-
-    /**
-     * Add to each attribute (processor, later bolt) an ID.
-     *
-     * @param element xml element
-     */
-    public static void addUUIDAttributes(Element element) {
-
-        String theId = element.getAttribute("id");
-        if (theId == null || theId.trim().isEmpty()) {
-            UUID id = UUID.randomUUID();
-            element.setAttribute(UUID_ATTRIBUTE, id.toString());
-        }
-
-        NodeList list = element.getChildNodes();
-        for (int i = 0; i < list.getLength(); i++) {
-            Node node = list.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                addUUIDAttributes((Element) node);
-            }
-        }
-    }
-
-    /**
-     * Create IDs for each processor (bolt).
-     *
-     * @param in input stream (xml file)
-     * @return input stream as String with added IDs
-     */
-    public static String createIDs(InputStream in) throws Exception {
-
-        // parse input stream to a document (xml)
-        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document doc = builder.parse(in);
-
-        // add IDs
-        addUUIDAttributes(doc.getDocumentElement());
-
-        // write document to string
-        Transformer trans = TransformerFactory.newInstance().newTransformer();
-        Source source = new DOMSource(doc);
-        StringWriter out = new StringWriter();
-        Result output = new StreamResult(out);
-        trans.transform(source, output);
-
-        return out.toString();
-    }
-
 
     /**
      * Method to start cluster and run XML configuration as flink topology on it while setting the
@@ -143,9 +77,7 @@ public class run {
         StreamTopologyBuilder.ShutdownHook shutdown = new StreamTopologyBuilder.ShutdownHook();
         Runtime.getRuntime().addShutdownHook(shutdown);
 
-        InputStream in = url.openStream();
-
-        String xml = createIDs(in);
+        String xml = storm.run.createIDs(url.openStream());
 
         Document doc = XMLUtils.parseDocument(xml);
         doc = XMLUtils.addUUIDAttributes(doc, UUID_ATTRIBUTE);
