@@ -23,13 +23,12 @@
  */
 package stream.storm.config;
 
-import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import backtype.storm.topology.BoltDeclarer;
-import flink.StreamTopologyBuilder;
+import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.QueueBolt;
@@ -60,7 +59,7 @@ public class QueueHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * flink.StreamTopologyBuilder)
+     * StreamTopologyBuilder)
      */
     @Override
     public void handle(Element element, StreamTopology st, StreamTopologyBuilder builder) throws Exception {

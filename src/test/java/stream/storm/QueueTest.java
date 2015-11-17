@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
-import flink.StreamTopologyBuilder;
+import stream.StreamTopologyBuilder;
 import stream.test.Collector;
 
 import static org.junit.Assert.fail;

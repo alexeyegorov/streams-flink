@@ -23,10 +23,9 @@
  */
 package stream.storm.config;
 
-import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.w3c.dom.Element;
 
-import flink.StreamTopologyBuilder;
+import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
 
 /**

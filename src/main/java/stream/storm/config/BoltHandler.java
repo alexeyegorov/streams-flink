@@ -23,7 +23,6 @@
  */
 package stream.storm.config;
 
-import org.apache.flink.storm.api.FlinkTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -34,7 +33,7 @@ import java.util.Map;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IRichBolt;
-import flink.StreamTopologyBuilder;
+import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 
@@ -60,7 +59,7 @@ public class BoltHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * flink.StreamTopologyBuilder)
+     * StreamTopologyBuilder)
      */
     @Override
     public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder)
