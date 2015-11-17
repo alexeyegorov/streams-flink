@@ -23,7 +23,6 @@
  */
 package stream;
 
-import org.apache.flink.storm.api.FlinkSubmitter;
 import org.apache.flink.storm.api.FlinkTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import backtype.storm.Config;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.SpoutDeclarer;
-import flink.StreamTopologyBuilder;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;
@@ -78,10 +75,6 @@ public class StreamTopology {
      */
     private StreamTopology(StreamTopologyBuilder builder) {
         this.builder = builder;
-    }
-
-    public StreamTopologyBuilder getTopologyBuilder() {
-        return builder;
     }
 
     public Variables getVariables() {
