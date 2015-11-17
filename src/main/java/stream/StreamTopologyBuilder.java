@@ -1,4 +1,4 @@
-package flink;
+package stream;
 
 import org.apache.flink.storm.api.FlinkLocalCluster;
 import org.apache.flink.storm.api.FlinkTopology;
