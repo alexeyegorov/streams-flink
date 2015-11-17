@@ -39,6 +39,8 @@ import stream.StreamTopology;
 import stream.StreamTopologyBuilder;
 import stream.util.XMLUtils;
 
+import static storm.deploy.handleArgs;
+
 /**
  * Transforms streams XML configuration to a valid flink topology, start local flink cluster and
  * deploys created flink topology to the local cluster.
@@ -113,7 +115,7 @@ public class run {
     public static void main(String[] args) throws Exception {
 
         final Properties p = new Properties();
-        List<String> params = flink.deploy.handleArgs(args, p);
+        List<String> params = handleArgs(args, p);
 
         if (params.isEmpty()) {
             System.err.println("You need to specify an XML configuration!");
