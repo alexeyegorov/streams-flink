@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.BoltDeclarer;
@@ -104,7 +105,14 @@ public class StreamTopology {
         final StreamTopology st = new StreamTopology(builder);
 
         doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
-
+        NodeList nodeList = doc.getElementsByTagName("application");
+        String appId = "application:" + UUID.randomUUID().toString();
+        if (nodeList.getLength() > 1) {
+            log.error("More than 1 application node.");
+        } else {
+            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
+        }
+        st.getVariables().put("application.id", appId);
         String xml = XMLUtils.toString(doc);
         DependencyInjection dependencies = new DependencyInjection();
 

@@ -32,6 +32,7 @@ import java.util.List;
 import backtype.storm.topology.BoltDeclarer;
 import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
+import stream.Subscription;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 import stream.storm.ProcessBolt;
