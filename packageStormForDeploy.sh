@@ -56,10 +56,10 @@ fi
 # rebuild (package) the needed jars
 if ${build}; then
     # package for deployment
-    mvn -P deploy,standalone -U package -DskipTests
+    mvn -P deploy,standalone package -DskipTests
 
     # package for local start
-    mvn -Dflink.mainclass=${flinkmainclass} -U -P standalone,!deploy package -DskipTests
+    mvn -Dflink.mainclass=${flinkmainclass} -P standalone,!deploy package -DskipTests
 fi
 
 # run the deployment process
@@ -67,7 +67,7 @@ if ${run}; then
     # start the deployment
     java -jar \
         -Dnimbus.host=${nimbus} \
-        -Dstorm.jar=target/streams-flink-0.9.23-SNAPSHOT-flink-provided.jar \
-        target/streams-flink-0.9.23-SNAPSHOT-flink-compiled.jar \
+        -Dstorm.jar=target/streams-flink-0.9.24-SNAPSHOT-flink-provided.jar \
+        target/streams-flink-0.9.24-SNAPSHOT-flink-compiled.jar \
         ${process_path}
 fi
