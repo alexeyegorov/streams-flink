@@ -25,7 +25,7 @@ package stream.storm.config;
 
 import org.w3c.dom.Element;
 
-import stream.StreamTopologyBuilder;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopology;
 
 /**
@@ -35,5 +35,5 @@ public interface ConfigHandler {
 
     boolean handles(Element el);
 
-    void handle(Element element, StreamTopology st, StreamTopologyBuilder builder) throws Exception;
+    void handle(Element element, StreamTopology st, TopologyBuilder builder) throws Exception;
 }

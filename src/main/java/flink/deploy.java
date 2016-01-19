@@ -24,6 +24,7 @@
 package flink;
 
 import org.apache.flink.storm.api.FlinkSubmitter;
+import org.apache.flink.storm.api.FlinkTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -36,8 +37,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import backtype.storm.Config;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopology;
-import stream.StreamTopologyBuilder;
 import stream.runtime.StreamRuntime;
 import stream.storm.Constants;
 import stream.util.XMLUtils;
@@ -45,7 +46,10 @@ import stream.util.XMLUtils;
 import static storm.deploy.handleArgs;
 
 /**
- * @author chris
+ * Main method to run deployment process of flink topology that is transformed from streams
+ * configuration in XML format into a storm topology.
+ *
+ * @author chris, alexey
  */
 public class deploy {
 
@@ -85,8 +89,8 @@ public class deploy {
                 config.setNumWorkers(workers);
             }
 
-            StreamTopology topology = StreamTopology.build(doc,
-                    StreamTopologyBuilder.createFlinkTopologyBuilder());
+            TopologyBuilder stormBuilder = new TopologyBuilder();
+            StreamTopology topology = StreamTopology.build(doc, stormBuilder);
 
             String name = id;
             if (id == null || id.trim().isEmpty()) {
@@ -94,7 +98,7 @@ public class deploy {
             }
 
             log.info("Submitting topology '{}'", name);
-            FlinkSubmitter.submitTopology(name, config, topology.createFlinkTopology());
+            FlinkSubmitter.submitTopology(name, config, FlinkTopology.createTopology(stormBuilder));
 
         } catch (Exception e) {
             e.printStackTrace();

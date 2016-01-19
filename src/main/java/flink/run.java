@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Properties;
 
 import backtype.storm.Config;
+import backtype.storm.topology.TopologyBuilder;
 import stream.DocumentEncoder;
 import stream.StreamTopology;
 import stream.StreamTopologyBuilder;
@@ -96,12 +97,15 @@ public class run {
 
         Config conf = new Config();
         conf.setDebug(false);
+//        conf.setNumWorkers(4);
+//        conf.setMaxTaskParallelism(4);
 
         // create right stream topology
-        StreamTopology st = StreamTopology.build(doc,
-                StreamTopologyBuilder.createFlinkTopologyBuilder());
+        TopologyBuilder stormBuilder = new TopologyBuilder();
+        StreamTopology st = StreamTopology.build(doc, stormBuilder);
         log.info("Creating stream-topology...");
-        FlinkTopology topology = st.createFlinkTopology();
+        FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
+//        topology.setParallelism(2);
 
         // start local cluster and run created topology on it
         StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import backtype.storm.topology.BoltDeclarer;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
@@ -59,10 +60,10 @@ public class QueueHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * StreamTopologyBuilder)
+     * backtype.storm.topology.TopologyBuilder)
      */
     @Override
-    public void handle(Element element, StreamTopology st, StreamTopologyBuilder builder) throws Exception {
+    public void handle(Element element, StreamTopology st, TopologyBuilder builder) throws Exception {
 
         String id = element.getAttribute("id");
         if (id == null || id.trim().isEmpty()) {

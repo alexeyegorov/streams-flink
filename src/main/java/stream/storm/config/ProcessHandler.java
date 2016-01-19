@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import java.util.List;
 
 import backtype.storm.topology.BoltDeclarer;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopologyBuilder;
 import stream.StreamTopology;
 import stream.Subscription;
@@ -65,10 +66,10 @@ public class ProcessHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * StreamTopologyBuilder)
+     * backtype.storm.topology.TopologyBuilder)
      */
     @Override
-    public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder) throws Exception {
+    public void handle(Element el, StreamTopology st, TopologyBuilder builder) throws Exception {
 
         if (el.getNodeName().equalsIgnoreCase("process")) {
             String id = el.getAttribute(Constants.ID);

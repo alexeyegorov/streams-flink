@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 import java.util.Map;
 
 import backtype.storm.topology.SpoutDeclarer;
-import stream.StreamTopologyBuilder;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
@@ -63,10 +63,10 @@ public class StreamHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * StreamTopologyBuilder)
+     * backtype.storm.topology.TopologyBuilder)
      */
     @Override
-    public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder)
+    public void handle(Element el, StreamTopology st, TopologyBuilder builder)
             throws Exception {
 
         if (!handles(el))

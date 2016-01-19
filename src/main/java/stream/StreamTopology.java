@@ -43,6 +43,7 @@ import java.util.UUID;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.SpoutDeclarer;
+import backtype.storm.topology.TopologyBuilder;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;
@@ -63,7 +64,7 @@ public class StreamTopology {
 
     static Logger log = LoggerFactory.getLogger(StreamTopology.class);
 
-    public final StreamTopologyBuilder builder;
+    public final TopologyBuilder builder;
     public final Map<String, BoltDeclarer> bolts = new LinkedHashMap<>();
     public final Map<String, SpoutDeclarer> spouts = new LinkedHashMap<>();
     public final Variables variables = new Variables();
@@ -74,7 +75,7 @@ public class StreamTopology {
      *
      * @param builder
      */
-    private StreamTopology(StreamTopologyBuilder builder) {
+    private StreamTopology(TopologyBuilder builder) {
         this.builder = builder;
     }
 
@@ -93,14 +94,14 @@ public class StreamTopology {
      * @param doc The DOM document that defines the topology.
      */
     public static StreamTopology create(Document doc) throws Exception {
-        return build(doc, StreamTopologyBuilder.createFlinkTopologyBuilder());
+        return build(doc, new TopologyBuilder());
     }
 
     /**
      * Creates a new instance of a StreamTopology based on the given document and using the
      * specified TopologyBuilder.
      */
-    public static StreamTopology build(Document doc, StreamTopologyBuilder builder) throws Exception {
+    public static StreamTopology build(Document doc, TopologyBuilder builder) throws Exception {
 
         final StreamTopology st = new StreamTopology(builder);
 
@@ -222,7 +223,7 @@ public class StreamTopology {
      * created from the DOM document.
      */
     public FlinkTopology createFlinkTopology() {
-        return (FlinkTopology) builder.createTopology();
+        return FlinkTopology.createTopology(builder);
     }
 
     public StormTopology createStormTopology() {

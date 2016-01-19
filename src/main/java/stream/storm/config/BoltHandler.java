@@ -33,7 +33,7 @@ import java.util.Map;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.IBasicBolt;
 import backtype.storm.topology.IRichBolt;
-import stream.StreamTopologyBuilder;
+import backtype.storm.topology.TopologyBuilder;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 
@@ -59,10 +59,10 @@ public class BoltHandler extends ATopologyElementHandler {
 
     /**
      * @see stream.storm.config.ConfigHandler#handle(org.w3c.dom.Element, stream.StreamTopology,
-     * StreamTopologyBuilder)
+     * backtype.storm.topology.TopologyBuilder)
      */
     @Override
-    public void handle(Element el, StreamTopology st, StreamTopologyBuilder builder)
+    public void handle(Element el, StreamTopology st, TopologyBuilder builder)
             throws Exception {
 
         if (!handles(el))
