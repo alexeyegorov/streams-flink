@@ -213,6 +213,26 @@
 
     <dependencies>
         <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-cta</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-hdfs</artifactId>
+            <version>0.0.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.jwall</groupId>
             <artifactId>streams-core</artifactId>
             <version>${streams.version}</version>
@@ -288,7 +308,7 @@
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
-            <version>0.9.4</version>
+            <version>0.9.6</version>
         </dependency>
         <dependency>
             <groupId>org.apache.sling</groupId>
