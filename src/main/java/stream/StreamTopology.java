@@ -142,7 +142,7 @@ public class StreamTopology {
             System.exit(-1);
         }
 
-        List<ConfigHandler> handlers = new ArrayList<ConfigHandler>();
+        List<ConfigHandler> handlers = new ArrayList<>();
         handlers.add(new SpoutHandler(of));
         handlers.add(new QueueHandler(of, xml));
         handlers.add(new StreamHandler(of, xml));
@@ -216,17 +216,5 @@ public class StreamTopology {
 
     public void addSpout(String id, SpoutDeclarer spout) {
         spouts.put(id, spout);
-    }
-
-    /**
-     * This method creates a new instance of type StormTopology based on the topology that has been
-     * created from the DOM document.
-     */
-    public FlinkTopology createFlinkTopology() {
-        return FlinkTopology.createTopology(builder);
-    }
-
-    public StormTopology createStormTopology() {
-        return (StormTopology) builder.createTopology();
     }
 }
