@@ -24,6 +24,7 @@
 package stream;
 
 import org.apache.flink.storm.api.FlinkSubmitter;
+import org.apache.flink.storm.api.FlinkTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -100,7 +101,7 @@ public class Test {
         TopologyBuilder stormBuilder = new TopologyBuilder();
         StreamTopology streamGraph = StreamTopology.build(xml, stormBuilder);
 
-        FlinkSubmitter.submitTopology(id, config, streamGraph.createFlinkTopology());
+        FlinkSubmitter.submitTopology(id, config, FlinkTopology.createTopology(stormBuilder));
 
         // NimbusClient nimbusClient = NimbusClient
         // .getConfiguredClient(config);
