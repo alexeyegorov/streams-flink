@@ -12,35 +12,42 @@ import stream.io.AbstractStream;
 import stream.runtime.setup.factory.ObjectFactory;
 
 /**
+ * Own source implementation to embed stream processor from 'streams framework'
+ *
  * @author alexey
  */
 public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkSource.class);
 
+    /**
+     * Stream processor embedded inside of SourceFunction
+     */
     protected AbstractStream streamProcessor;
 
+    /**
+     * Flag to stop retrieving elements from the source.
+     */
     private boolean isRunning = true;
 
+    /**
+     * Element object containing part of XML file with configuration for the source.
+     */
     private Element el;
 
-    public FlinkSource(Element element){
+    /**
+     * Create new flink source object while saving XML's element with source configuration.
+     *
+     * @param element part of XML with source configuration
+     */
+    public FlinkSource(Element element) {
         this.el = element;
-        log.debug("Source for '" + el+ "' initialized.");
+        log.debug("Source for '" + el + "' initialized.");
     }
 
-    public FlinkSource(AbstractStream stream){
-        this.streamProcessor = stream;
-    }
-
-    @Override
-    public void run(SourceContext<Data> ctx) throws Exception {
-        isRunning = true;
-        while (isRunning) {
-            ctx.collect(streamProcessor.readNext());
-        }
-    }
-
+    /**
+     * init() is called inside of super class' readResolve() method.
+     */
     protected void init() throws Exception {
         String className = el.getAttribute("class");
         ObjectFactory objectFactory = ObjectFactory.newInstance();
@@ -50,8 +57,23 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
     }
 
     @Override
+    public void run(SourceContext<Data> ctx) throws Exception {
+        if (streamProcessor == null) {
+            log.debug("Stream processor has not been initialized properly.");
+            return;
+        }
+        isRunning = true;
+        while (isRunning) {
+            // Stream processor retrieves next element by calling readNext() method
+            ctx.collect(streamProcessor.readNext());
+        }
+    }
+
+    @Override
     public void cancel() {
         log.debug("Cancelling FlinkSource '" + el + "'.");
         isRunning = false;
     }
+
+
 }
