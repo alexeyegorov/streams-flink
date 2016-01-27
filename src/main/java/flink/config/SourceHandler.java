@@ -1,4 +1,4 @@
-package flink;
+package flink.config;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 
 import java.util.Map;
 
+import flink.FlinkSource;
 import stream.Data;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;

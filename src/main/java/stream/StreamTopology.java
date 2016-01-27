@@ -24,9 +24,7 @@
 package stream;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -46,11 +44,9 @@ import java.util.UUID;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.SpoutDeclarer;
 import backtype.storm.topology.TopologyBuilder;
-import flink.FlinkConfigHandler;
-import flink.FlinkProcessList;
-import flink.FlinkSource;
-import flink.ProcessListHandler;
-import flink.SourceHandler;
+import flink.config.FlinkConfigHandler;
+import flink.config.ProcessListHandler;
+import flink.config.SourceHandler;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;

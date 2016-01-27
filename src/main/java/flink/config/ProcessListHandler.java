@@ -1,11 +1,11 @@
-package flink;
+package flink.config;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
-import stream.ProcessorList;
+import flink.FlinkProcessList;
 import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;

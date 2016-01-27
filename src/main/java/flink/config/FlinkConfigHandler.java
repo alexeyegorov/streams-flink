@@ -1,4 +1,4 @@
-package flink;
+package flink.config;
 
 import org.apache.flink.api.common.functions.Function;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
