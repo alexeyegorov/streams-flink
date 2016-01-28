@@ -52,8 +52,9 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         String className = el.getAttribute("class");
         ObjectFactory objectFactory = ObjectFactory.newInstance();
         Map<String, String> params = objectFactory.getAttributes(el);
-        this.streamProcessor = (AbstractStream) objectFactory.create(
-                className, params, ObjectFactory.createConfigDocument(el));
+        streamProcessor = (AbstractStream)
+                objectFactory.create(className, params, ObjectFactory.createConfigDocument(el));
+        streamProcessor.init();
     }
 
     @Override
@@ -65,7 +66,12 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         isRunning = true;
         while (isRunning) {
             // Stream processor retrieves next element by calling readNext() method
-            ctx.collect(streamProcessor.readNext());
+            Data data = streamProcessor.readNext();
+            if (data != null) {
+                ctx.collect(data);
+            } else {
+                isRunning = false;
+            }
         }
     }
 
