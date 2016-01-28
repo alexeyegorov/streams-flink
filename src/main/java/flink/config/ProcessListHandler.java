@@ -55,7 +55,7 @@ public class ProcessListHandler extends FlinkConfigHandler {
             }
 
 
-            function = new FlinkProcessList(st.getVariables(), el);
+            function = new FlinkProcessList(st, el);
             // createProcess(st.getVariables(), id);
 
 //            ProcessBolt bolt = new ProcessBolt(xml, id, st.getVariables());

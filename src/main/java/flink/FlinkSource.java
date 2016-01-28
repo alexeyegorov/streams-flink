@@ -66,6 +66,7 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         isRunning = true;
         while (isRunning) {
             // Stream processor retrieves next element by calling readNext() method
+            // stop if stream is finished and produces NULL
             Data data = streamProcessor.readNext();
             if (data != null) {
                 ctx.collect(data);

@@ -3,43 +3,41 @@ package flink;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import stream.Data;
 import stream.ProcessContext;
 import stream.Processor;
 import stream.ProcessorList;
 import stream.StatefulProcessor;
-import stream.StormRunner;
+import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.ProcessorFactory;
 import stream.util.Variables;
 
 /**
+ * Own implementation of MapFunction for a list of processors (<process>...</process>).
+ *
  * @author alexey
  */
 public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<Data, Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
+    private final List<FlinkQueue> flinkQueues;
 
     protected ProcessorList process;
     protected Variables variables;
     protected Element element;
     protected ProcessContext context;
 
-    public FlinkProcessList(ProcessorList process){
-        this.process = process;
-    }
-
-    public FlinkProcessList(Variables variables, Element el) {
-        this.variables = variables;
+    public FlinkProcessList(StreamTopology streamTopology, Element el) {
+        this.variables = streamTopology.getVariables();
+        this.flinkQueues = streamTopology.flinkQueues;
         this.element = el;
         this.context = new FlinkContext("");
         log.debug("Processors for '" + el + "' initialized.");
@@ -47,7 +45,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
 
     @Override
     public Data map(Data data) throws Exception {
-        if (data != null){
+        if (data != null) {
             data = process.process(data);
         }
         return data;
@@ -56,31 +54,17 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
     @Override
     protected void init() throws Exception {
         process = createProcess();
-        for(Processor p : process.getProcessors()){
+        for (Processor p : process.getProcessors()) {
             ((StatefulProcessor) p).init(context);
         }
     }
 
     /**
-     * This method creates the inner processors of this function bolt.
+     * This method creates the inner processors of this process bolt.
      *
      * @return list of processors inside a function
-     * @throws Exception
      */
-//     * @param variables
-//     * @param id
     protected ProcessorList createProcess() throws Exception {
-
-//        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-//        Document config = builder.parse(new ByteArrayInputStream(element.getBytes()));
-
-//        Element element = StormRunner.findElementByUUID(config.getDocumentElement(), id);
-
-//        if (element == null) {
-//            log.error("Failed to find function for uuid '{}' in the XML!", id);
-//            throw new Exception("Failed to find function for uuid '" + id + "' in the XML!");
-//        }
-
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);
         ProcessorFactory pf = new ProcessorFactory(obf);
@@ -88,7 +72,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
         // The handler injects wrappers for any QueueService accesses, thus
         // effectively doing the queue-flow injection
         //
-//        QueueInjection queueInjection = new QueueInjection(uuid, output);
+//        QueueInjection queueInjection = new QueueInjection(element.getAttribute("id"), collector);
 //        pf.addCreationHandler(queueInjection);
 
         log.debug("Creating processor-list from element {}", element);
@@ -108,8 +92,45 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
 //            }
 //        }
 
-//        subscriptions.addAll(queueInjection.getSubscriptions());
-//        log.debug("Found {} subscribers for bolt '{}': " + subscriptions, subscriptions.size(), uuid);
         return process;
+    }
+
+    /**
+     * Go through the list of processors and check which queues are used as their output.
+     *
+     * @return list of queues as string
+     */
+    public List<String> getListOfOutputQueues() {
+        return getOutputQueues(this.element);
+    }
+
+    /**
+     * Go recursively through all children of each element and check if they have 'queue' or
+     * 'queues' attribute.
+     *
+     * @param element part of XML configuration containing list of processors.
+     * @return list of queues as string
+     */
+    private List<String> getOutputQueues(Element element) {
+        List<String> output = new ArrayList<>(0);
+        NodeList childNodes = element.getChildNodes();
+        for (int el = 0; el < childNodes.getLength(); el++) {
+            Node item = childNodes.item(el);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element child = (Element) item;
+                if (child.hasAttribute("queue")) {
+                    output.add(child.getAttribute("queue"));
+                }
+                if (child.hasAttribute("queues")) {
+                    String queues = child.getAttribute("queues");
+                    String[] split = queues.split(",");
+                    for (String queue : split) {
+                        output.add(queue.trim());
+                    }
+                }
+                output.addAll(getOutputQueues(child));
+            }
+        }
+        return output;
     }
 }
