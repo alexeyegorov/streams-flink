@@ -23,10 +23,13 @@
  */
 package stream;
 
+import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -80,6 +83,7 @@ public class StreamTopology {
     final Set<Subscription> subscriptions = new LinkedHashSet<>();
 
     public List<FlinkQueue> flinkQueues = new ArrayList<>(0);
+    public StreamExecutionEnvironment env;
 
     /**
      * Create StreamTopology without topology builder (for flink purpose)
@@ -117,6 +121,7 @@ public class StreamTopology {
             throws Exception {
 
         final StreamTopology st = new StreamTopology();
+        st.env = env;
 
         // add unique IDs
         doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
@@ -165,11 +170,7 @@ public class StreamTopology {
         }
 
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
-        SourceHandler sourceHandler = new SourceHandler(of);
-//        handlers.add();
         handlers.add(new ProcessListHandler(of, xml));
-        QueueHandler queueHandler = new QueueHandler(of);
-//        handlers.add();
 
 //        handlers.add(new SpoutHandler(of));
 //        handlers.add(new StreamHandler(of, xml));
@@ -181,6 +182,12 @@ public class StreamTopology {
 
         // create stream sources (multiple are possible)
         NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
+        if (streamList.getLength() < 1) {
+            log.debug("At least 1 stream source has to be defined.");
+            return null;
+        }
+
+        SourceHandler sourceHandler = new SourceHandler(of);
         //TODO use something more simple?!
         HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
         for (int is = 0; is < streamList.getLength(); is++) {
@@ -203,6 +210,7 @@ public class StreamTopology {
 
         // create all possible queues
         NodeList queueList = doc.getDocumentElement().getElementsByTagName("queue");
+        QueueHandler queueHandler = new QueueHandler(of);
         for (int iq = 0; iq < queueList.getLength(); iq++) {
             Element element = (Element) queueList.item(iq);
             if (queueHandler.handles(element)) {
@@ -217,7 +225,7 @@ public class StreamTopology {
             for (int i = 0; i < length; i++) {
                 Node node = list.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element el = (Element) node;
+                    final Element el = (Element) node;
 
                     if (handler.handles(el)) {
                         log.info("--------------------------------------------------------------------------------");
@@ -225,88 +233,69 @@ public class StreamTopology {
                         handler.handle(el, st, env);
                         String input = el.getAttribute("input");
                         log.info("--------------------------------------------------------------------------------");
-//                        if (SourceHandler.class.isInstance(handler)){
-//                            dataStream = env.addSource(((SourceHandler) handler).getFunction());
-//                        } else
                         if (ProcessListHandler.class.isInstance(handler)) {
+                            // apply processors
                             FlinkProcessList function = ((ProcessListHandler) handler).getFunction();
-                            final List<String> outputQueues = function.getListOfOutputQueues();
-                            DataStream<Data> dataStream = sources
-                                    .get(input)
-                                    .map(function);
-                            //TODO split the datastream and save the splits into 'sources' hashmap
-                            SplitStream<Data> split = dataStream.split(new OutputSelector<Data>() {
-                                @Override
-                                public Iterable<String> select(Data data) {
-                                    List<String> queues = new ArrayList<>(outputQueues.size());
-                                    if (data.containsKey("flink.queue")) {
-                                        String outputQueue = (String) data.get("flink.queue");
-                                        for (String queue : outputQueues) {
-                                            if (queue.equals(outputQueue)) {
-                                                queues.add(queue);
-                                            }
-                                        }
-                                    }
-                                    return queues;
-                                }
-                            });
-                            for (String queue : outputQueues) {
-                                sources.put(queue, split.select(queue));
+                            DataStream<Data> dataStream = sources.get(input).map(function);
+
+                            // detect output queues
+                            List<String> outputQueues = function.getListOfOutputQueues();
+                            outputQueues.add("all-" + el.getAttribute("id"));
+
+                            // split the data stream if there are any queues used inside
+                            // of process list
+                            if (outputQueues.size() > 0) {
+                                splitDataStream(sources, el, dataStream, outputQueues);
                             }
-                            sources.put(input, dataStream);
                         }
                     }
                 }
             }
         }
 
-//        if (dataStream == null){
-//            log.debug("Process has not been initialized.\nQuitting...");
-//            System.exit(-1);
-//        }
-        //dataStream.print();
-
         env.execute();
-
-        //
-        // resolve subscriptions
-        //
-//        Iterator<Subscription> it = st.subscriptions.iterator();
-//        log.info("--------------------------------------------------------------------------------");
-//        while (it.hasNext()) {
-//            Subscription s = it.next();
-//            log.info("   {}", s);
-//        }
-//        log.info("--------------------------------------------------------------------------------");
-//        it = st.subscriptions.iterator();
-//
-//        while (it.hasNext()) {
-//            Subscription subscription = it.next();
-//            log.info("Resolving subscription {}", subscription);
-//
-//            BoltDeclarer subscriber = st.bolts.get(subscription.subscriber());
-//            if (subscriber != null) {
-//                String source = subscription.source();
-//                String stream = subscription.stream();
-//                if (stream.equals("default")) {
-//                    log.info("connecting '{}' to shuffle-group '{}'", subscription.subscriber(), source);
-//                    subscriber.shuffleGrouping(source);
-//                } else {
-//                    log.info("connecting '{}' to shuffle-group '{}:" + stream + "'", subscription.subscriber(), source);
-//                    subscriber.shuffleGrouping(source, stream);
-//                }
-//                it.remove();
-//            } else {
-//                log.error("No subscriber found for id '{}'", subscription.subscriber());
-//            }
-//        }
-//
-//        if (!st.subscriptions.isEmpty()) {
-//            log.info("Unresolved subscriptions: {}", st.subscriptions);
-//            throw new Exception("Found " + st.subscriptions.size() + " unresolved subscription references!");
-//        }
-
         return st;
+    }
+
+    private static void splitDataStream(HashMap<String, DataStream<Data>> sources,
+                                        final Element el,
+                                        DataStream<Data> dataStream,
+                                        List<String> outputQueues) {
+        final List<String> allQueues = outputQueues;
+        SplitStream<Data> split = dataStream.split(new OutputSelector<Data>() {
+            @Override
+            public Iterable<String> select(Data data) {
+                List<String> queues = new ArrayList<>(allQueues.size());
+                try {
+                    if (data.containsKey("flink.queue")) {
+                        String outputQueue = (String) data.get("flink.queue");
+                        log.debug("flink.queue {}", outputQueue);
+                        for (String queue : allQueues) {
+                            if (queue.equals(outputQueue)) {
+                                queues.add(queue);
+                            }
+                        }
+                    } else {
+                        log.debug("flink.queue stop");
+                        queues.add("all-" + el.getAttribute("id"));
+                    }
+                }catch(NullPointerException ex){
+                    log.error("Data item is empty.");
+                }
+                return queues;
+            }
+        });
+        for (String queue : allQueues) {
+            DataStream<Data> select = split.select(queue);
+            // stop those data items without any queue
+            if (queue.startsWith("all-")){
+                select.addSink(new SinkFunction<Data>() {
+                    @Override
+                    public void invoke(Data value) throws Exception {}
+                });
+            }
+            sources.put(queue, select);
+        }
     }
 
     /**
@@ -423,5 +412,9 @@ public class StreamTopology {
         }
 
         return st;
+    }
+
+    public void addBolt(String id, BoltDeclarer bolt){
+        bolts.put(id, bolt);
     }
 }

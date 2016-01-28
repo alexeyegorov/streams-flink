@@ -10,6 +10,7 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.List;
 
+import flink.config.QueueHandler;
 import stream.Data;
 import stream.ProcessContext;
 import stream.Processor;
@@ -38,6 +39,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
     public FlinkProcessList(StreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
         this.flinkQueues = streamTopology.flinkQueues;
+        FlinkQueue flinkQueue = new FlinkQueue(streamTopology, "all-"+el.getAttribute("id"));
+        this.flinkQueues.add(flinkQueue);
         this.element = el;
         this.context = new FlinkContext("");
         log.debug("Processors for '" + el + "' initialized.");
@@ -47,6 +50,12 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
     public Data map(Data data) throws Exception {
         if (data != null) {
             data = process.process(data);
+            for(FlinkQueue q : flinkQueues){
+                if(q.isAppended()){
+                    q.setAppended(false);
+                    return q.read();
+                }
+            }
         }
         return data;
     }
@@ -72,8 +81,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
         // The handler injects wrappers for any QueueService accesses, thus
         // effectively doing the queue-flow injection
         //
-//        QueueInjection queueInjection = new QueueInjection(element.getAttribute("id"), collector);
-//        pf.addCreationHandler(queueInjection);
+        QueueInjection queueInjection = new QueueInjection(flinkQueues);
+        pf.addCreationHandler(queueInjection);
 
         log.debug("Creating processor-list from element {}", element);
         List<Processor> list = pf.createNestedProcessors(element);
