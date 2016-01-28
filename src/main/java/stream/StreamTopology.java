@@ -200,7 +200,7 @@ public class StreamTopology {
             log.debug("Process has not been initialized.\nQuitting...");
             System.exit(-1);
         }
-        dataStream.print();
+        //dataStream.print();
 
         env.execute();
 
