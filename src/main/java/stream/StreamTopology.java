@@ -23,13 +23,10 @@
  */
 package stream;
 
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -236,16 +233,15 @@ public class StreamTopology {
                         if (ProcessListHandler.class.isInstance(handler)) {
                             // apply processors
                             FlinkProcessList function = ((ProcessListHandler) handler).getFunction();
-                            DataStream<Data> dataStream = sources.get(input).map(function);
+                            DataStream<Data> dataStream = sources.get(input).flatMap(function);
 
                             // detect output queues
                             List<String> outputQueues = function.getListOfOutputQueues();
-                            outputQueues.add("all-" + el.getAttribute("id"));
 
                             // split the data stream if there are any queues used inside
                             // of process list
                             if (outputQueues.size() > 0) {
-                                splitDataStream(sources, el, dataStream, outputQueues);
+                                splitDataStream(sources, dataStream, outputQueues);
                             }
                         }
                     }
@@ -258,7 +254,6 @@ public class StreamTopology {
     }
 
     private static void splitDataStream(HashMap<String, DataStream<Data>> sources,
-                                        final Element el,
                                         DataStream<Data> dataStream,
                                         List<String> outputQueues) {
         final List<String> allQueues = outputQueues;
@@ -275,26 +270,15 @@ public class StreamTopology {
                                 queues.add(queue);
                             }
                         }
-                    } else {
-                        log.debug("flink.queue stop");
-                        queues.add("all-" + el.getAttribute("id"));
                     }
-                }catch(NullPointerException ex){
+                } catch (NullPointerException ex) {
                     log.error("Data item is empty.");
                 }
                 return queues;
             }
         });
         for (String queue : allQueues) {
-            DataStream<Data> select = split.select(queue);
-            // stop those data items without any queue
-            if (queue.startsWith("all-")){
-                select.addSink(new SinkFunction<Data>() {
-                    @Override
-                    public void invoke(Data value) throws Exception {}
-                });
-            }
-            sources.put(queue, select);
+            sources.put(queue, split.select(queue));
         }
     }
 
@@ -414,7 +398,7 @@ public class StreamTopology {
         return st;
     }
 
-    public void addBolt(String id, BoltDeclarer bolt){
+    public void addBolt(String id, BoltDeclarer bolt) {
         bolts.put(id, bolt);
     }
 }

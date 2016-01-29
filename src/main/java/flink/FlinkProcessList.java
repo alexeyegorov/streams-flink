@@ -1,6 +1,7 @@
 package flink;
 
-import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -10,7 +11,6 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.List;
 
-import flink.config.QueueHandler;
 import stream.Data;
 import stream.ProcessContext;
 import stream.Processor;
@@ -22,11 +22,11 @@ import stream.runtime.setup.factory.ProcessorFactory;
 import stream.util.Variables;
 
 /**
- * Own implementation of MapFunction for a list of processors (<process>...</process>).
+ * Own implementation of FlatMapFunction for a list of processors (<process>...</process>).
  *
  * @author alexey
  */
-public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<Data, Data> {
+public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunction<Data, Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
     private final List<FlinkQueue> flinkQueues;
@@ -39,25 +39,21 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
     public FlinkProcessList(StreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
         this.flinkQueues = streamTopology.flinkQueues;
-        FlinkQueue flinkQueue = new FlinkQueue(streamTopology, "all-"+el.getAttribute("id"));
-        this.flinkQueues.add(flinkQueue);
         this.element = el;
         this.context = new FlinkContext("");
         log.debug("Processors for '" + el + "' initialized.");
     }
 
     @Override
-    public Data map(Data data) throws Exception {
+    public void flatMap(Data data, Collector<Data> collector) throws Exception {
         if (data != null) {
-            data = process.process(data);
-            for(FlinkQueue q : flinkQueues){
-                if(q.isAppended()){
-                    q.setAppended(false);
-                    return q.read();
+            process.process(data);
+            for (FlinkQueue q : flinkQueues) {
+                while (q.getSize() > 0) {
+                    collector.collect(q.read());
                 }
             }
         }
-        return data;
     }
 
     @Override
@@ -91,16 +87,6 @@ public class FlinkProcessList extends StreamsFlinkObject implements MapFunction<
         for (Processor p : list) {
             process.getProcessors().add(p);
         }
-
-//        if (element.hasAttribute("output")) {
-//            String out = element.getAttribute("output");
-//            if (out.indexOf(",") > 0) {
-//                outputs = out.split(",");
-//            } else {
-//                outputs = new String[] { out };
-//            }
-//        }
-
         return process;
     }
 

@@ -41,22 +41,6 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
         appended = false;
     }
 
-    public FlinkQueue(StreamTopology streamTopology, String id) {
-        DocumentBuilder documentBuilder;
-        try {
-            documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            log.debug("Not able to create document builder to create an element for queue building.");
-            return;
-        }
-        this.element = documentBuilder.newDocument().createElement("queue");
-        element.setAttribute("id", id);
-        element.setAttribute("class", "stream.io.BlockingQueue");
-        this.id = id;
-        this.variables = streamTopology.getVariables();
-        appended = false;
-    }
-
     public String getQueueName(){
         return id;
     }
