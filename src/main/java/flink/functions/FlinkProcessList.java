@@ -1,4 +1,4 @@
-package flink;
+package flink.functions;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.util.Collector;
@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.List;
 
+import flink.QueueInjection;
 import stream.Data;
 import stream.FlinkStreamTopology;
 import stream.ProcessContext;

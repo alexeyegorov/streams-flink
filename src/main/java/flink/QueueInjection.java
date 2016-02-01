@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import flink.functions.FlinkQueue;
 import stream.Processor;
 import stream.io.Sink;
 import stream.runtime.DependencyInjection;

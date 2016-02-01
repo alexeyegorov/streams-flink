@@ -1,4 +1,4 @@
-package flink;
+package flink.functions;
 
 import org.apache.flink.api.common.functions.Function;
 import org.slf4j.Logger;

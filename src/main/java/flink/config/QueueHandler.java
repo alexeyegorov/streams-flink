@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
-import flink.FlinkQueue;
+import flink.functions.FlinkQueue;
 import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 

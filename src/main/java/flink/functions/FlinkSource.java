@@ -1,4 +1,4 @@
-package flink;
+package flink.functions;
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;

@@ -8,7 +8,7 @@ import org.w3c.dom.Element;
 
 import java.util.Map;
 
-import flink.FlinkSource;
+import flink.functions.FlinkSource;
 import stream.Data;
 import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;

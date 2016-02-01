@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import flink.FlinkProcessList;
-import flink.FlinkQueue;
+import flink.functions.FlinkProcessList;
+import flink.functions.FlinkQueue;
 import flink.config.FlinkConfigHandler;
 import flink.config.ProcessListHandler;
 import flink.config.QueueHandler;
