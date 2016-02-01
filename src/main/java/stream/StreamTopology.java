@@ -169,10 +169,6 @@ public class StreamTopology {
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
         handlers.add(new ProcessListHandler(of, xml));
 
-//        handlers.add(new SpoutHandler(of));
-//        handlers.add(new StreamHandler(of, xml));
-//        handlers.add(new BoltHandler(of));
-//        handlers.add(new ProcessHandler(of, xml));
 
         NodeList list = doc.getDocumentElement().getChildNodes();
         int length = list.getLength();
@@ -233,7 +229,17 @@ public class StreamTopology {
                         if (ProcessListHandler.class.isInstance(handler)) {
                             // apply processors
                             FlinkProcessList function = ((ProcessListHandler) handler).getFunction();
-                            DataStream<Data> dataStream = sources.get(input).flatMap(function);
+                            if (!sources.containsKey("input")){
+                                log.error("Input '{}' has not been defined. Define 'stream' or " +
+                                        "put process list after the process list defining the " +
+                                        "output queue with this input name.", input);
+                                return st;
+                            }
+
+                            //TODO: add parallelism
+                            DataStream<Data> dataStream = sources.get(input)
+                                    .flatMap(function)
+                                    .setParallelism(4);
 
                             // detect output queues
                             List<String> outputQueues = function.getListOfOutputQueues();
