@@ -102,7 +102,7 @@ public class run {
 
         // create right stream topology
         TopologyBuilder stormBuilder = new TopologyBuilder();
-        StreamTopology st = StreamTopology.build(doc, stormBuilder);
+        StreamTopology.build(doc, stormBuilder);
         log.info("Creating stream-topology...");
         FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
 //        topology.setParallelism(2);

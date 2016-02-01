@@ -81,6 +81,4 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         log.debug("Cancelling FlinkSource '" + el + "'.");
         isRunning = false;
     }
-
-
 }

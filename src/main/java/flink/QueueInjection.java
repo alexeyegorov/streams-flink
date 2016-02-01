@@ -39,12 +39,17 @@ import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.ProcessorFactory.ProcessorCreationHandler;
 
 /**
+ * Original QueueInjection used in streams-storm project adapted for use with FlinkQueues
+ *
  * @author alexey, christian
  */
 public class QueueInjection implements ProcessorCreationHandler {
 
     static Logger log = LoggerFactory.getLogger(stream.storm.QueueInjection.class);
 
+    /**
+     * List of FlinkQueues used as wrapper for real queue implementations.
+     */
     private final List<FlinkQueue> flinkQueues;
 
     public QueueInjection(List<FlinkQueue> flinkQueues) {
@@ -61,10 +66,14 @@ public class QueueInjection implements ProcessorCreationHandler {
     @Override
     public void processorCreated(Processor p, Element from) throws Exception {
         Map<String, String> params = ObjectFactory.newInstance().getAttributes(from);
+
+        // iterate through all methods to find setter methods for (sub)class of Sink
         for (Method m : p.getClass().getMethods()) {
             log.trace("Checking method {}", m);
             if (DependencyInjection.isSetter(m, Sink.class)) {
                 final String qsn = getQueueSetterName(m);
+
+                //TODO: is it necessary or would simply qsn.toLowerCase() would do the same?
                 String prop = qsn.substring(0, 1).toLowerCase() + qsn.substring(1);
 
                 if (params.get(prop) == null) {
@@ -77,6 +86,7 @@ public class QueueInjection implements ProcessorCreationHandler {
                         prop, params.get(prop));
 
                 if (DependencyInjection.isArraySetter(m, Sink.class)) {
+                    // setter using array of comma separated queue names
                     String[] names = params.get(prop).split(",");
 
                     List<FlinkQueue> wrapper = new ArrayList<>();
@@ -96,6 +106,7 @@ public class QueueInjection implements ProcessorCreationHandler {
                     m.invoke(p, array);
 
                 } else {
+                    // setter using queue name
                     String name = params.get(prop);
                     log.debug("Injecting a single queue... using method {}", m);
                     FlinkQueue flinkQueue = getFlinkQueue(name);

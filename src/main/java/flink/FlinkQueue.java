@@ -14,7 +14,8 @@ import stream.runtime.setup.factory.ObjectFactory;
 import stream.util.Variables;
 
 /**
- * Wrapper around the real queue implementation.
+ * While FlinkQueue implements Function and Queue classes, it is used as a wrapper for a queue class
+ * with extra functionality to add label 'flink.queue' to data items.
  *
  * @author alexey
  */
@@ -22,30 +23,40 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
 
     static Logger log = LoggerFactory.getLogger(FlinkQueue.class);
 
+    /**
+     * Document element containing information about the queue
+     */
     private Element element;
+
+    /**
+     * Name of the queue
+     */
     private String id;
+
+    /**
+     * Variables with environment information
+     */
     private Variables variables;
+
+    /**
+     * Real queue implementation
+     */
     private Queue queue;
-    private boolean appended;
 
     public FlinkQueue(FlinkStreamTopology streamTopology, Element element) {
         this.element = element;
         variables = streamTopology.getVariables();
         queue = null;
         id = element.getAttribute("id");
-        appended = false;
     }
 
-    public String getQueueName(){
+    /**
+     * Retrieve the name of the queue
+     *
+     * @return queue name
+     */
+    public String getQueueName() {
         return id;
-    }
-
-    public boolean isAppended(){
-        return appended;
-    }
-
-    public void setAppended(boolean appended){
-        this.appended = appended;
     }
 
     @Override
@@ -72,25 +83,22 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
 
     @Override
     public Data read() throws Exception {
-        if (this.getSize()>1) {
-            log.error("MORE THAN ONE ELEMENT in the queue");
-        }
         return queue.read();
     }
 
     @Override
     public boolean write(Data item) throws Exception {
+        //TODO: move to constants
         item.put("flink.queue", id);
-        appended = true;
         return queue.write(item);
     }
 
     @Override
     public boolean write(Collection<Data> data) throws Exception {
-        for(Data item : data){
+        for (Data item : data) {
+            //TODO: move to constants
             item.put("flink.queue", id);
         }
-        appended = false;
         return queue.write(data);
     }
 
