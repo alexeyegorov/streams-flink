@@ -353,7 +353,7 @@
 
             <properties>
                 <flink.scope>compile</flink.scope>
-                <flink.mainclass>flink.run</flink.mainclass>
+                <flink.mainclass>flink.deploy_on_flink</flink.mainclass>
             </properties>
 
             <build>
