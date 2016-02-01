@@ -24,24 +24,52 @@ import stream.util.Variables;
 
 /**
  * Own implementation of FlatMapFunction for a list of processors (<process>...</process>).
+ * FlatMap required to be sure all items stored in queues are collected.
  *
  * @author alexey
  */
 public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunction<Data, Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
-    private final List<FlinkQueue> flinkQueues;
 
+    /**
+     * List of queues
+     */
+    private List<FlinkQueue> flinkQueues;
+
+    /**
+     * List of processors to be executed
+     */
     protected ProcessorList process;
+
+    /**
+     * Variables with environment information
+     */
     protected Variables variables;
+
+    /**
+     * Document element containing information about list of processors.
+     */
     protected Element element;
+
+    /**
+     * Process context is used for initialization and is realized here by using FlinkContext.
+     */
     protected ProcessContext context;
 
     public FlinkProcessList(FlinkStreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
-        this.flinkQueues = streamTopology.flinkQueues;
         this.element = el;
         this.context = new FlinkContext("");
+
+        // add only queues that are used in this ProcessorList
+        List<String> listOfOutputQueues = getListOfOutputQueues();
+        flinkQueues = new ArrayList<>(0);
+        for (FlinkQueue queue : streamTopology.flinkQueues){
+            if (listOfOutputQueues.contains(queue.getQueueName().toLowerCase())){
+                flinkQueues.add(queue);
+            }
+        }
         log.debug("Processors for '" + el + "' initialized.");
     }
 
