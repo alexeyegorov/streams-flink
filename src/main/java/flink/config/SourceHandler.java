@@ -10,7 +10,7 @@ import java.util.Map;
 
 import flink.FlinkSource;
 import stream.Data;
-import stream.StreamTopology;
+import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 
@@ -28,7 +28,7 @@ public class SourceHandler extends FlinkConfigHandler {
     }
 
     @Override
-    public void handle(Element el, StreamTopology st, StreamExecutionEnvironment env)
+    public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env)
             throws Exception {
         if (!handles(el)){
             return;
@@ -49,10 +49,6 @@ public class SourceHandler extends FlinkConfigHandler {
         log.info("  >   Expanded parameters: {}", params);
 
         log.info("  >   Creating spout-instance from class {}, parameters: {}", className, params);
-//        AbstractStream stream = (AbstractStream) objectFactory.create(
-//                className, params, ObjectFactory.createConfigDocument(el));
-
-        //log.info("  > Registering spout '{}' with instance {}", id, bolt);
         function = new FlinkSource(el);
     }
 

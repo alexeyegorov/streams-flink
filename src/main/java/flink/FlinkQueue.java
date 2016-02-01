@@ -3,17 +3,12 @@ package flink;
 import org.apache.flink.api.common.functions.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.Collection;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import stream.Data;
-import stream.StreamTopology;
+import stream.FlinkStreamTopology;
 import stream.io.Queue;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.util.Variables;
@@ -33,7 +28,7 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
     private Queue queue;
     private boolean appended;
 
-    public FlinkQueue(StreamTopology streamTopology, Element element) {
+    public FlinkQueue(FlinkStreamTopology streamTopology, Element element) {
         this.element = element;
         variables = streamTopology.getVariables();
         queue = null;

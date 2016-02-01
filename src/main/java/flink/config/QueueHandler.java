@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import flink.FlinkQueue;
-import stream.StreamTopology;
+import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 
 /**
@@ -24,7 +24,7 @@ public class QueueHandler extends FlinkConfigHandler {
     }
 
     @Override
-    public void handle(Element el, StreamTopology st, StreamExecutionEnvironment env) throws Exception {
+    public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception {
         if(el.getNodeName().equals("queue")){
             String id = el.getAttribute("id");
             if (id == null || id.trim().isEmpty()) {

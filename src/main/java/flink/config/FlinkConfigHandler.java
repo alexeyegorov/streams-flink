@@ -4,7 +4,7 @@ import org.apache.flink.api.common.functions.Function;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.w3c.dom.Element;
 
-import stream.StreamTopology;
+import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 
 /**
@@ -24,7 +24,7 @@ public abstract class FlinkConfigHandler {
      * @param st
      * @param env
      */
-    public abstract void handle(Element el, StreamTopology st, StreamExecutionEnvironment env) throws Exception;
+    public abstract void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception;
 
     /**
      * Override this method.

@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import stream.Data;
+import stream.FlinkStreamTopology;
 import stream.ProcessContext;
 import stream.Processor;
 import stream.ProcessorList;
 import stream.StatefulProcessor;
-import stream.StreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.ProcessorFactory;
 import stream.util.Variables;
@@ -36,7 +36,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     protected Element element;
     protected ProcessContext context;
 
-    public FlinkProcessList(StreamTopology streamTopology, Element el) {
+    public FlinkProcessList(FlinkStreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
         this.flinkQueues = streamTopology.flinkQueues;
         this.element = el;
@@ -48,6 +48,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     public void flatMap(Data data, Collector<Data> collector) throws Exception {
         if (data != null) {
             process.process(data);
+
+            // go through all queues and collect written data items
             for (FlinkQueue q : flinkQueues) {
                 while (q.getSize() > 0) {
                     collector.collect(q.read());

@@ -1,22 +1,15 @@
 package flink;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.DataSet;
-import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
-import backtype.storm.Config;
 import stream.DocumentEncoder;
-import stream.StreamTopology;
+import stream.FlinkStreamTopology;
 import stream.util.XMLUtils;
 
 /**
@@ -49,9 +42,6 @@ public class deploy_on_flink {
 //        System.setProperty("rlog.host", "127.0.0.1");
 //        System.setProperty("rlog.token", "ab09cfe1d60b602cb7600b5729da939f");
 
-//        StreamTopologyBuilder.ShutdownHook shutdown = new StreamTopologyBuilder.ShutdownHook();
-//        Runtime.getRuntime().addShutdownHook(shutdown);
-
         String xml = storm.run.createIDs(url.openStream());
 
         Document doc = XMLUtils.parseDocument(xml);
@@ -68,17 +58,10 @@ public class deploy_on_flink {
             return;
         }
 
-        Config conf = new Config();
-        conf.setDebug(false);
-//        conf.setNumWorkers(4);
-//        conf.setMaxTaskParallelism(4);
-
         // create right stream topology
 //        TopologyBuilder stormBuilder = new TopologyBuilder();
 
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-        StreamTopology st = StreamTopology.create(doc, env);
+        FlinkStreamTopology st = FlinkStreamTopology.create(doc);
 
 //        log.info("Creating stream-topology...");
 //        FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
@@ -88,32 +71,8 @@ public class deploy_on_flink {
 //        StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);
     }
 
-        public static void main(String[] args) throws Exception {
-            File file = new File(args[0]);
-            main(file.toURI().toURL());
-//            final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-//
-//            DataSet<String> text = env.fromElements(
-//                    "Who's there?",
-//                    "I think I hear them. Stand, ho! Who's there?");
-//
-//            DataSet<Tuple2<String, Integer>> wordCounts = text
-//                    .flatMap(new LineSplitter())
-//                    .groupBy(0)
-//                    .sum(1);
-//
-//            wordCounts.print();
-//
-//            env.execute("Word Count Example");
-        }
-
-
-//        public static class LineSplitter implements FlatMapFunction<String, Tuple2<String, Integer>> {
-//            @Override
-//            public void flatMap(String line, Collector<Tuple2<String, Integer>> out) {
-//                for (String word : line.split(" ")) {
-//                    out.collect(new Tuple2<String, Integer>(word, 1));
-//                }
-//            }
-//        }
+    public static void main(String[] args) throws Exception {
+        File file = new File(args[0]);
+        main(file.toURI().toURL());
+    }
 }
