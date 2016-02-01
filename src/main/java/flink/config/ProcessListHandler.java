@@ -11,31 +11,25 @@ import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 
 /**
+ * Configuration handler for list of processors. Method handle(...) creates FlatMapFunction to
+ * process the processors that could enqueue items into queues.
+ *
  * @author alexey
  */
 public class ProcessListHandler extends FlinkConfigHandler {
 
     static Logger log = LoggerFactory.getLogger(ProcessListHandler.class);
-    transient FlinkProcessList function;
 
     protected String xml;
 
     public ProcessListHandler(ObjectFactory of, String xml) {
-        this(of);
-        this.xml = xml;
-    }
-
-    private ProcessListHandler(ObjectFactory of) {
         super(of);
-    }
-
-    public FlinkProcessList getFunction() {
-        return function;
+        this.xml = xml;
     }
 
     @Override
     public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception {
-        if (el.getNodeName().equalsIgnoreCase("process")) {
+        if (handles(el)) {
             String id = el.getAttribute(Constants.ID);
             if (id == null || id.trim().isEmpty()) {
                 log.error("No 'id' attribute defined in process element (class: '{}')", el.getAttribute("class"));
@@ -55,15 +49,12 @@ public class ProcessListHandler extends FlinkConfigHandler {
                 }
             }
 
-
-            function = new FlinkProcessList((FlinkStreamTopology) st, el);
+            function = new FlinkProcessList(st, el);
         }
     }
 
-
     @Override
     public boolean handles(Element el) {
-        String name = el.getNodeName();
-        return name.equalsIgnoreCase("process");
+        return handles(el, "process");
     }
 }

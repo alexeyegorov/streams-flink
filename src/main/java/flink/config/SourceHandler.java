@@ -15,6 +15,9 @@ import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 
 /**
+ * Configuration handler for streams sources. Method handle(...) creates SourceFunction to produce
+ * stream of data.
+ *
  * @author alexey
  */
 public class SourceHandler extends FlinkConfigHandler {
@@ -30,7 +33,7 @@ public class SourceHandler extends FlinkConfigHandler {
     @Override
     public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env)
             throws Exception {
-        if (!handles(el)){
+        if (!handles(el)) {
             return;
         }
 
@@ -52,16 +55,14 @@ public class SourceHandler extends FlinkConfigHandler {
         function = new FlinkSource(el);
     }
 
-    public SourceFunction<Data> getFunction(){
-        return function;
-    }
 
     @Override
     public boolean handles(Element el) {
-        if (el == null) {
-            return false;
-        }
-        String name = el.getNodeName();
-        return "stream".equalsIgnoreCase(name);
+        return handles(el, "stream");
+    }
+
+    @Override
+    public SourceFunction<Data> getFunction() {
+        return function;
     }
 }
