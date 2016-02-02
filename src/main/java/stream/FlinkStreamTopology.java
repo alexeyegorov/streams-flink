@@ -103,10 +103,6 @@ public class FlinkStreamTopology {
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
         handlers.add(new ProcessListHandler(of, xml));
 
-
-        NodeList list = doc.getDocumentElement().getChildNodes();
-        int length = list.getLength();
-
         // create stream sources (multiple are possible)
         NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
         if (streamList.getLength() < 1) {
@@ -148,6 +144,8 @@ public class FlinkStreamTopology {
             }
         }
 
+        NodeList list = doc.getDocumentElement().getChildNodes();
+        int length = list.getLength();
         for (FlinkConfigHandler handler : handlers) {
 
             for (int i = 0; i < length; i++) {
