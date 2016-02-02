@@ -10,6 +10,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import flink.QueueInjection;
 import stream.Data;
@@ -60,7 +61,14 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     public FlinkProcessList(FlinkStreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
         this.element = el;
-        this.context = new FlinkContext("");
+        String processId;
+        if (el.hasAttribute("id")){
+            processId = el.getAttribute("id");
+        } else {
+            processId = UUID.randomUUID().toString();
+        }
+        this.context = new FlinkContext(processId);
+        this.context.set("application.id", streamTopology.getVariables().get("application.id"));
 
         // add only queues that are used in this ProcessorList
         List<String> listOfOutputQueues = getListOfOutputQueues();

@@ -6,14 +6,14 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import stream.Context;
 import stream.ProcessContext;
 
 /**
- * @author alexey
+ * @author chris, alexey
  */
-//TODO: adopt this class to  FLINK context
 public class FlinkContext implements ProcessContext, Serializable {
     /** The unique class ID */
     private static final long serialVersionUID = 6162013508460469957L;
@@ -28,7 +28,7 @@ public class FlinkContext implements ProcessContext, Serializable {
      * @param id UUID of a process
      */
     public FlinkContext(String id) {
-//        set("process", (!id.equals(""))? id : UUID.randomUUID().toString());
+        set("process", (!id.equals(""))? id : UUID.randomUUID().toString());
     }
 
     /**
@@ -54,12 +54,9 @@ public class FlinkContext implements ProcessContext, Serializable {
     public Object get(String key) {
 
         if (values.containsKey(key)) {
-            log.debug("Found serializable value for key '{}'", key);
             return values.get(key);
         }
-
         if (volatileValues.containsKey(key)) {
-            log.debug("Found non-serializable value for key '{}'", key);
             return volatileValues.get(key);
         }
 
@@ -86,14 +83,13 @@ public class FlinkContext implements ProcessContext, Serializable {
 
     public Object readResolve() {
         if (this.volatileValues == null) {
-            volatileValues = new LinkedHashMap<String, Object>();
+            volatileValues = new LinkedHashMap<>();
         }
         return this;
     }
 
     public boolean contains(String key) {
         return values.containsKey(key) || volatileValues.containsKey(key);
-
     }
 
     @Override
@@ -103,8 +99,7 @@ public class FlinkContext implements ProcessContext, Serializable {
 
     @Override
     public String getId() {
-        return "";
-//        return UUID.randomUUID().toString();
+        return (String) get("process");
     }
 
     @Override
