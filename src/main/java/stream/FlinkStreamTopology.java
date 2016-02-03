@@ -171,10 +171,14 @@ public class FlinkStreamTopology {
      */
     private static String getAppId(Document doc) {
         String appId = "application:" + UUID.randomUUID().toString();
+
+        // try to find application or container tags
         NodeList nodeList = doc.getElementsByTagName("application");
         if (nodeList.getLength() < 1) {
             nodeList = doc.getElementsByTagName("container");
         }
+
+        // do there exist more than one application or container tags?
         if (nodeList.getLength() > 1) {
             log.error("More than 1 application node.");
         } else {
