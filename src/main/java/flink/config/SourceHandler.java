@@ -52,7 +52,7 @@ public class SourceHandler extends FlinkConfigHandler {
         log.info("  >   Expanded parameters: {}", params);
 
         log.info("  >   Creating spout-instance from class {}, parameters: {}", className, params);
-        function = new FlinkSource(el);
+        function = new FlinkSource(st.getVariables(), el);
     }
 
 

@@ -10,6 +10,7 @@ import java.util.Map;
 import stream.Data;
 import stream.io.AbstractStream;
 import stream.runtime.setup.factory.ObjectFactory;
+import stream.util.Variables;
 
 /**
  * Own source implementation to embed stream processor from 'streams framework'
@@ -31,6 +32,11 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
     private boolean isRunning = true;
 
     /**
+     * Variables with environment information
+     */
+    protected Variables variables;
+
+    /**
      * Element object containing part of XML file with configuration for the source.
      */
     private Element el;
@@ -40,7 +46,8 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
      *
      * @param element part of XML with source configuration
      */
-    public FlinkSource(Element element) {
+    public FlinkSource(Variables variables, Element element) {
+        this.variables = variables;
         this.el = element;
         log.debug("Source for '" + el + "' initialized.");
     }
@@ -53,7 +60,7 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         ObjectFactory objectFactory = ObjectFactory.newInstance();
         Map<String, String> params = objectFactory.getAttributes(el);
         streamProcessor = (AbstractStream)
-                objectFactory.create(className, params, ObjectFactory.createConfigDocument(el));
+                objectFactory.create(className, params, objectFactory.createConfigDocument(el), this.variables);
         streamProcessor.init();
     }
 

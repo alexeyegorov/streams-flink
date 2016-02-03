@@ -78,27 +78,10 @@ public class FlinkStreamTopology {
         st.getVariables().put("application.id", appId);
 
         String xml = XMLUtils.toString(doc);
-        DependencyInjection dependencies = new DependencyInjection();
 
         ObjectFactory of = ObjectFactory.newInstance();
 
-        try {
-            PropertiesHandler handler = new PropertiesHandler();
-            handler.handle(null, doc, st.getVariables(), dependencies);
-            of.addVariables(st.getVariables());
-
-            if (log.isDebugEnabled()) {
-                log.debug("########################################################################");
-                log.debug("Found properties: {}", st.getVariables());
-                for (String key : st.getVariables().keySet()) {
-                    log.debug("   '{}' = '{}'", key, st.getVariables().get(key));
-                }
-                log.debug("########################################################################");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
 
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
         handlers.add(new ProcessListHandler(of, xml));

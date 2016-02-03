@@ -92,8 +92,8 @@ public class StreamTopology {
     }
 
     /**
-     * Creates a new instance of a StreamTopology based on the given document and using
-     * the specified TopologyBuilder.
+     * Creates a new instance of a StreamTopology based on the given document and using the
+     * specified TopologyBuilder.
      */
     public static StreamTopology build(Document doc, TopologyBuilder builder) throws Exception {
 
@@ -112,7 +112,6 @@ public class StreamTopology {
         }
         st.getVariables().put("application.id", appId);
         String xml = XMLUtils.toString(doc);
-        DependencyInjection dependencies = new DependencyInjection();
 
         // a map of pre-defined inputs, i.e. input-names => uuids
         // to catch the case when processes read from queues that have
@@ -121,23 +120,7 @@ public class StreamTopology {
         // Map<String, String> streams = new LinkedHashMap<String, String>();
         ObjectFactory of = ObjectFactory.newInstance();
 
-        try {
-            PropertiesHandler handler = new PropertiesHandler();
-            handler.handle(null, doc, st.getVariables(), dependencies);
-            of.addVariables(st.getVariables());
-
-            if (log.isDebugEnabled()) {
-                log.debug("########################################################################");
-                log.debug("Found properties: {}", st.getVariables());
-                for (String key : st.getVariables().keySet()) {
-                    log.debug("   '{}' = '{}'", key, st.getVariables().get(key));
-                }
-                log.debug("########################################################################");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        st.getVariables().addVariables(handleProperties(doc, st.getVariables()));
 
         List<ConfigHandler> handlers = new ArrayList<>();
         handlers.add(new SpoutHandler(of));
@@ -205,6 +188,33 @@ public class StreamTopology {
         }
 
         return st;
+    }
+
+    /**
+     * Handle properties in XML file and add them to variables.
+     *
+     * @param doc       XML file as document
+     * @param variables map of variables
+     */
+    public static Variables handleProperties(Document doc, Variables variables) {
+        DependencyInjection dependencies = new DependencyInjection();
+        try {
+            PropertiesHandler handler = new PropertiesHandler();
+            handler.handle(null, doc, variables, dependencies);
+
+            if (log.isDebugEnabled()) {
+                log.debug("########################################################################");
+                log.debug("Found properties: {}", variables);
+                for (String key : variables.keySet()) {
+                    log.debug("   '{}' = '{}'", key, variables.get(key));
+                }
+                log.debug("########################################################################");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        return variables;
     }
 
     public void addBolt(String id, BoltDeclarer bolt) {
