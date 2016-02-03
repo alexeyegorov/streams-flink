@@ -25,7 +25,7 @@ public class QueueHandler extends FlinkConfigHandler {
     }
 
     @Override
-    public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception {
+    public void handle(Element el, FlinkStreamTopology st) throws Exception {
         if (handles(el)) {
             String id = el.getAttribute("id");
             if (id == null || id.trim().isEmpty()) {

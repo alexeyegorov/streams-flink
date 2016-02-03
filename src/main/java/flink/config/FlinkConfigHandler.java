@@ -28,7 +28,7 @@ public abstract class FlinkConfigHandler {
      * @param st  flink stream topology
      * @param env stream execution environment
      */
-    public abstract void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception;
+    public abstract void handle(Element el, FlinkStreamTopology st) throws Exception;
 
     /**
      * Check if given element can be handler by this configuration handler.

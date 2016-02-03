@@ -80,6 +80,23 @@ public class FlinkStreamTopology {
         initFlinkQueues(doc, st);
 
         // create processor list handler and apply it to ProcessorLists
+        if (initFlinkFunctions(doc, st, sources)) {
+            // execute flink job if we were able to init all the functions
+            st.env.execute(st.getVariables().get(APPLICATION_ID));
+        }
+        return st;
+    }
+
+    /**
+     * Find ProcessorLists and handle them to become FlatMap functions.
+     *
+     * @param doc XML document
+     * @param st stream topology
+     * @param sources list of sources / queues
+     * @return true if all functions can be applied; false if something goes wrong.
+     */
+    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st, HashMap<String, DataStream<Data>> sources){
+        //TODO we do not use a list here, but only one handler at the moment
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
         handlers.add(new ProcessListHandler(ObjectFactory.newInstance()));
         NodeList list = doc.getDocumentElement().getChildNodes();
@@ -94,7 +111,12 @@ public class FlinkStreamTopology {
                     if (handler.handles(el)) {
                         log.info("--------------------------------------------------------------------------------");
                         log.info("Handling element '{}'", node.getNodeName());
-                        handler.handle(el, st, st.env);
+                        try {
+                            handler.handle(el, st);
+                        } catch (Exception e) {
+                            log.error("Handler {} could not handle element {}.", handler, el);
+                            return false;
+                        }
                         String input = el.getAttribute("input");
                         log.info("--------------------------------------------------------------------------------");
                         if (ProcessListHandler.class.isInstance(handler)) {
@@ -104,7 +126,7 @@ public class FlinkStreamTopology {
                                 log.error("Input '{}' has not been defined. Define 'stream' or " +
                                         "put process list after the process list defining the " +
                                         "output queue with this input name.", input);
-                                return st;
+                                return false;
                             }
 
                             //TODO: add parallelism
@@ -125,9 +147,7 @@ public class FlinkStreamTopology {
                 }
             }
         }
-
-        st.env.execute(st.getVariables().get(APPLICATION_ID));
-        return st;
+        return true;
     }
 
     /**
@@ -176,7 +196,7 @@ public class FlinkStreamTopology {
 
                 // handle the source and create data stream for it
                 try {
-                    sourceHandler.handle(item, st, st.env);
+                    sourceHandler.handle(item, st);
                 } catch (Exception e) {
                     log.error("Error while handling the source for item {}", item);
                     return null;
@@ -206,7 +226,7 @@ public class FlinkStreamTopology {
         for (int iq = 0; iq < queueList.getLength(); iq++) {
             Element element = (Element) queueList.item(iq);
             if (queueHandler.handles(element)) {
-                queueHandler.handle(element, st, st.env);
+                queueHandler.handle(element, st);
                 FlinkQueue flinkQueue = (FlinkQueue) queueHandler.getFunction();
                 st.flinkQueues.add(flinkQueue);
             }

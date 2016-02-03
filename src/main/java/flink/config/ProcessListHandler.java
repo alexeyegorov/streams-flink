@@ -25,7 +25,7 @@ public class ProcessListHandler extends FlinkConfigHandler {
     }
 
     @Override
-    public void handle(Element el, FlinkStreamTopology st, StreamExecutionEnvironment env) throws Exception {
+    public void handle(Element el, FlinkStreamTopology st) throws Exception {
         if (handles(el)) {
             String id = el.getAttribute(Constants.ID);
             if (id == null || id.trim().isEmpty()) {
