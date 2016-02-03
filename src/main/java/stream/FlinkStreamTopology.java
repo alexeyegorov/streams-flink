@@ -32,8 +32,6 @@ import stream.util.XMLUtils;
  */
 public class FlinkStreamTopology {
 
-    public static final String APPLICATION_ID = "application.id";
-
     static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
 
     public final Variables variables = new Variables();
@@ -64,7 +62,7 @@ public class FlinkStreamTopology {
         doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
 
         // search for 'application' or 'container' tag and extract its ID
-        st.getVariables().put(APPLICATION_ID, getAppId(doc));
+        st.getVariables().put(Constants.APPLICATION_ID, getAppId(doc));
 
         // handle properties and save them to variables
         st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
@@ -82,7 +80,7 @@ public class FlinkStreamTopology {
         // create processor list handler and apply it to ProcessorLists
         if (initFlinkFunctions(doc, st, sources)) {
             // execute flink job if we were able to init all the functions
-            st.env.execute(st.getVariables().get(APPLICATION_ID));
+            st.env.execute(st.getVariables().get(Constants.APPLICATION_ID));
         }
         return st;
     }
