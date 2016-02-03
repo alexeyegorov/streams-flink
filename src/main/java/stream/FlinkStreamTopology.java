@@ -79,6 +79,8 @@ public class FlinkStreamTopology {
 
         // create processor list handler and apply it to ProcessorLists
         if (initFlinkFunctions(doc, st, sources)) {
+            // set level of parallelism for the job
+            st.env.setParallelism(getParallelism(doc.getDocumentElement()));
             // execute flink job if we were able to init all the functions
             st.env.execute(st.getVariables().get(Constants.APPLICATION_ID));
         }
@@ -127,10 +129,9 @@ public class FlinkStreamTopology {
                                 return false;
                             }
 
-                            //TODO: add parallelism
                             DataStream<Data> dataStream = sources.get(input)
                                     .flatMap(function)
-                                    .setParallelism(4);
+                                    .setParallelism(getParallelism(el));
 
                             // detect output queues
                             List<String> outputQueues = function.getListOfOutputQueues();
@@ -146,6 +147,19 @@ public class FlinkStreamTopology {
             }
         }
         return true;
+    }
+
+    /**
+     * Inspect attributes of the given element whether they contain special attribute to define
+     * level of parallelism. If nothing defined, return 1.
+     * @param element part of xml
+     * @return level of parallelism defined in xml if attribute found; otherwise: 1
+     */
+    private static int getParallelism(Element element){
+        if (element.hasAttribute(Constants.NUM_WORKERS)){
+            return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
+        }
+        return 1;
     }
 
     /**
