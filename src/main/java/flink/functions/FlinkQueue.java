@@ -63,8 +63,14 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
     public void init() throws Exception {
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);
+        String className;
+        if (!element.hasAttribute("class")){
+            className = "stream.io.BlockingQueue";
+        } else {
+            className = element.getAttribute("class");
+        }
         try {
-            this.queue = (Queue) obf.create(element);
+            this.queue = (Queue) obf.create(className, obf.getAttributes(element), element, variables);
         } catch (ClassCastException ex) {
             log.debug("Queue seems not to be a right queue: {} with class {}",
                     element, obf.findClassForElement(element));
