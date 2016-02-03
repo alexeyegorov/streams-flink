@@ -104,7 +104,7 @@ public class FlinkStreamTopology {
 
                 // handle the source and create data stream for it
                 sourceHandler.handle(item, st, st.env);
-                DataStream<Data> source = st.env.addSource(sourceHandler.getFunction());
+                DataStream<Data> source = st.env.addSource(sourceHandler.getFunction(), id);
 
                 // put this source into the hashmap
                 sources.put(id, source);
@@ -171,7 +171,7 @@ public class FlinkStreamTopology {
             }
         }
 
-        st.env.execute();
+        st.env.execute(appId);
         return st;
     }
 
