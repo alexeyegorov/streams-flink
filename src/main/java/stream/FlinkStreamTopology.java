@@ -16,15 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import flink.functions.FlinkProcessList;
-import flink.functions.FlinkQueue;
 import flink.config.FlinkConfigHandler;
 import flink.config.ProcessListHandler;
 import flink.config.QueueHandler;
 import flink.config.SourceHandler;
-import stream.runtime.DependencyInjection;
+import flink.functions.FlinkProcessList;
+import flink.functions.FlinkQueue;
 import stream.runtime.setup.factory.ObjectFactory;
-import stream.runtime.setup.handler.PropertiesHandler;
 import stream.storm.Constants;
 import stream.util.Variables;
 import stream.util.XMLUtils;
@@ -33,6 +31,9 @@ import stream.util.XMLUtils;
  * @author alexey
  */
 public class FlinkStreamTopology {
+
+    public static final String APPLICATION_ID = "application.id";
+
     static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
 
     public final Variables variables = new Variables();
@@ -49,8 +50,8 @@ public class FlinkStreamTopology {
     }
 
     /**
-     * Creates a new instance of a StreamTopology based on the given document and using
-     * stream execution environment
+     * Creates a new instance of a StreamTopology based on the given document and using stream
+     * execution environment
      *
      * @param doc The DOM document that defines the topology.
      */
@@ -63,61 +64,24 @@ public class FlinkStreamTopology {
         doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
 
         // search for 'application' or 'container' tag and extract its ID
-        String appId = "application:" + UUID.randomUUID().toString();
-        NodeList nodeList = doc.getElementsByTagName("application");
-        if (nodeList.getLength() < 1) {
-            nodeList = doc.getElementsByTagName("container");
-        }
-        if (nodeList.getLength() > 1) {
-            log.error("More than 1 application node.");
-        } else {
-            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
-        }
+        st.getVariables().put(APPLICATION_ID, getAppId(doc));
 
-        // save application ID
-        st.getVariables().put("application.id", appId);
-
-        String xml = XMLUtils.toString(doc);
-
-        ObjectFactory of = ObjectFactory.newInstance();
-
+        // handle properties and save them to variables
         st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
 
-        ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
-        handlers.add(new ProcessListHandler(of, xml));
-
         // create stream sources (multiple are possible)
-        NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
-        if (streamList.getLength() < 1) {
-            log.debug("At least 1 stream source has to be defined.");
+        HashMap<String, DataStream<Data>> sources = initFlinkSources(doc, st);
+        if (sources == null) {
+            log.error("No source was or could have been initialized.");
             return null;
         }
 
-        SourceHandler sourceHandler = new SourceHandler(of);
-        //TODO use something more simple?!
-        HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
-        for (int is = 0; is < streamList.getLength(); is++) {
-            Element item = (Element) streamList.item(is);
-            if (sourceHandler.handles(item)) {
-                // name of the source
-                String id = item.getAttribute("id");
-
-                // handle the source and create data stream for it
-                sourceHandler.handle(item, st, st.env);
-                DataStream<Data> source = st.env.addSource(sourceHandler.getFunction(), id);
-
-                // put this source into the hashmap
-                sources.put(id, source);
-                log.info("'{}' added as stream source.", id);
-            } else {
-                log.debug("Source handler doesn't handle {}", item.toString());
-            }
-
-        }
-
         // create all possible queues
-        initFlinkQueues(doc, st, of);
+        initFlinkQueues(doc, st);
 
+        // create processor list handler and apply it to ProcessorLists
+        ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
+        handlers.add(new ProcessListHandler(ObjectFactory.newInstance()));
         NodeList list = doc.getDocumentElement().getChildNodes();
         int length = list.getLength();
         for (FlinkConfigHandler handler : handlers) {
@@ -162,20 +126,82 @@ public class FlinkStreamTopology {
             }
         }
 
-        st.env.execute(appId);
+        st.env.execute(st.getVariables().get(APPLICATION_ID));
         return st;
+    }
+
+    /**
+     * Search for application id in application and container tags. Otherwise produce random UUID.
+     *
+     * @param doc XML document
+     * @return application id extracted from the ID attribute or random UUID if no ID attribute
+     * present
+     */
+    private static String getAppId(Document doc) {
+        String appId = "application:" + UUID.randomUUID().toString();
+        NodeList nodeList = doc.getElementsByTagName("application");
+        if (nodeList.getLength() < 1) {
+            nodeList = doc.getElementsByTagName("container");
+        }
+        if (nodeList.getLength() > 1) {
+            log.error("More than 1 application node.");
+        } else {
+            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
+        }
+        return appId;
+    }
+
+    /**
+     * Find all sources (streams) and wrap them in FlinkSources.
+     *
+     * @param doc XML document
+     * @param st  stream topology
+     */
+    private static HashMap<String, DataStream<Data>> initFlinkSources(Document doc, FlinkStreamTopology st) {
+        NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
+        if (streamList.getLength() < 1) {
+            log.debug("At least 1 stream source has to be defined.");
+            return null;
+        }
+
+        ObjectFactory of = ObjectFactory.newInstance();
+        HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
+        SourceHandler sourceHandler = new SourceHandler(of);
+        //TODO use something more simple?!
+        for (int is = 0; is < streamList.getLength(); is++) {
+            Element item = (Element) streamList.item(is);
+            if (sourceHandler.handles(item)) {
+                // name of the source
+                String id = item.getAttribute("id");
+
+                // handle the source and create data stream for it
+                try {
+                    sourceHandler.handle(item, st, st.env);
+                } catch (Exception e) {
+                    log.error("Error while handling the source for item {}", item);
+                    return null;
+                }
+                DataStream<Data> source = st.env.addSource(sourceHandler.getFunction(), id);
+
+                // put this source into the hashmap
+                sources.put(id, source);
+                log.info("'{}' added as stream source.", id);
+            } else {
+                log.debug("Source handler doesn't handle {}", item.toString());
+            }
+        }
+        return sources;
     }
 
     /**
      * Find all queues and wrap them in FlinkQueues.
      *
      * @param doc XML document
-     * @param st stream topology
-     * @param of object factory
-     * @throws Exception
+     * @param st  stream topology
      */
-    private static void initFlinkQueues(Document doc, FlinkStreamTopology st, ObjectFactory of) throws Exception {
+    private static void initFlinkQueues(Document doc, FlinkStreamTopology st) throws Exception {
         NodeList queueList = doc.getDocumentElement().getElementsByTagName("queue");
+        ObjectFactory of = ObjectFactory.newInstance();
         QueueHandler queueHandler = new QueueHandler(of);
         for (int iq = 0; iq < queueList.getLength(); iq++) {
             Element element = (Element) queueList.item(iq);

@@ -20,11 +20,8 @@ public class ProcessListHandler extends FlinkConfigHandler {
 
     static Logger log = LoggerFactory.getLogger(ProcessListHandler.class);
 
-    protected String xml;
-
-    public ProcessListHandler(ObjectFactory of, String xml) {
-        super(of);
-        this.xml = xml;
+    public ProcessListHandler(ObjectFactory objectFactory) {
+        super(objectFactory);
     }
 
     @Override
