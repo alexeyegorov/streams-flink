@@ -213,7 +213,10 @@ public class FlinkStreamTopology {
                     log.error("Error while handling the source for item {}", item);
                     return null;
                 }
-                DataStream<Data> source = st.env.addSource(sourceHandler.getFunction(), id);
+                DataStream<Data> source = st.env
+                        .addSource(sourceHandler.getFunction(), id)
+                        .setParallelism(getParallelism(item))
+                        .disableChaining();
 
                 // put this source into the hashmap
                 sources.put(id, source);

@@ -1,10 +1,12 @@
 package flink.functions;
 
+import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import java.io.IOException;
 import java.util.Map;
 
 import stream.Data;
@@ -17,14 +19,14 @@ import stream.util.Variables;
  *
  * @author alexey
  */
-public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Data> {
+public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFunction<Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkSource.class);
 
     /**
      * Stream processor embedded inside of SourceFunction
      */
-    protected AbstractStream streamProcessor;
+    protected static AbstractStream streamProcessor;
 
     /**
      * Flag to stop retrieving elements from the source.
@@ -55,13 +57,21 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
     /**
      * init() is called inside of super class' readResolve() method.
      */
-    protected void init() throws Exception {
-        String className = el.getAttribute("class");
-        ObjectFactory objectFactory = ObjectFactory.newInstance();
-        Map<String, String> params = objectFactory.getAttributes(el);
-        streamProcessor = (AbstractStream)
-                objectFactory.create(className, params, objectFactory.createConfigDocument(el), this.variables);
-        streamProcessor.init();
+    protected synchronized void init() throws Exception {
+        //TODO: does singleton works on distributed machine?
+        if (getInstance() == null) {
+            String className = el.getAttribute("class");
+            ObjectFactory objectFactory = ObjectFactory.newInstance();
+    //        objectFactory.addVariables(variables);
+            Map<String, String> params = objectFactory.getAttributes(el);
+            streamProcessor = (AbstractStream)
+                    objectFactory.create(className, params, objectFactory.createConfigDocument(el), this.variables);
+            streamProcessor.init();
+        }
+    }
+
+    private static AbstractStream getInstance(){
+        return streamProcessor;
     }
 
     @Override
@@ -74,11 +84,18 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
         while (isRunning) {
             // Stream processor retrieves next element by calling readNext() method
             // stop if stream is finished and produces NULL
-            Data data = streamProcessor.read();
-            if (data != null) {
-                ctx.collect(data);
-            } else {
-                isRunning = false;
+            try {
+                Data data = streamProcessor.read();
+                if (data != null) {
+                    log.info("PARALLEL {}", data.get("MSimSourcePos.fAz"));
+                    ctx.collect(data);
+                } else {
+                    isRunning = false;
+                }
+            } catch (IOException exc){
+                if (exc.getMessage().trim().toLowerCase().equals("stream closed")){
+                    isRunning = false;
+                }
             }
         }
     }
