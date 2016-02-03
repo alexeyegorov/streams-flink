@@ -116,16 +116,7 @@ public class FlinkStreamTopology {
         }
 
         // create all possible queues
-        NodeList queueList = doc.getDocumentElement().getElementsByTagName("queue");
-        QueueHandler queueHandler = new QueueHandler(of);
-        for (int iq = 0; iq < queueList.getLength(); iq++) {
-            Element element = (Element) queueList.item(iq);
-            if (queueHandler.handles(element)) {
-                queueHandler.handle(element, st, st.env);
-                FlinkQueue flinkQueue = (FlinkQueue) queueHandler.getFunction();
-                st.flinkQueues.add(flinkQueue);
-            }
-        }
+        initFlinkQueues(doc, st, of);
 
         NodeList list = doc.getDocumentElement().getChildNodes();
         int length = list.getLength();
@@ -173,6 +164,27 @@ public class FlinkStreamTopology {
 
         st.env.execute(appId);
         return st;
+    }
+
+    /**
+     * Find all queues and wrap them in FlinkQueues.
+     *
+     * @param doc XML document
+     * @param st stream topology
+     * @param of object factory
+     * @throws Exception
+     */
+    private static void initFlinkQueues(Document doc, FlinkStreamTopology st, ObjectFactory of) throws Exception {
+        NodeList queueList = doc.getDocumentElement().getElementsByTagName("queue");
+        QueueHandler queueHandler = new QueueHandler(of);
+        for (int iq = 0; iq < queueList.getLength(); iq++) {
+            Element element = (Element) queueList.item(iq);
+            if (queueHandler.handles(element)) {
+                queueHandler.handle(element, st, st.env);
+                FlinkQueue flinkQueue = (FlinkQueue) queueHandler.getFunction();
+                st.flinkQueues.add(flinkQueue);
+            }
+        }
     }
 
     /**
