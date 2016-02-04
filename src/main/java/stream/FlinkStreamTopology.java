@@ -11,17 +11,25 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import flink.config.FlinkConfigHandler;
 import flink.config.ProcessListHandler;
 import flink.config.QueueHandler;
+import flink.config.ServiceHandler;
 import flink.config.SourceHandler;
 import flink.functions.FlinkProcessList;
 import flink.functions.FlinkQueue;
+import flink.functions.FlinkService;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 import stream.util.Variables;
@@ -42,6 +50,7 @@ public class FlinkStreamTopology {
      */
     public List<FlinkQueue> flinkQueues = new ArrayList<>(0);
     public StreamExecutionEnvironment env;
+    public List<FlinkService> flinkServices = new ArrayList<>(0);
 
 
     public Variables getVariables() {
@@ -65,11 +74,26 @@ public class FlinkStreamTopology {
         // search for 'application' or 'container' tag and extract its ID
         st.getVariables().put(Constants.APPLICATION_ID, getAppId(doc));
 
-        // handle <include../>
+        // handle <include.../>
         doc = new XIncluder().perform(doc, st.getVariables());
+
+        //TODO remove output of XML or add it as a method
+        TransformerFactory tf = TransformerFactory.newInstance();
+        javax.xml.transform.Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+        transformer.transform(new DOMSource(doc),
+                new StreamResult(new OutputStreamWriter(System.out, "UTF-8")));
 
         // handle properties and save them to variables
         st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
+
+        // handle <service.../>
+        initFlinkServices(doc, st);
 
         // create stream sources (multiple are possible)
         HashMap<String, DataStream<Data>> sources = initFlinkSources(doc, st);
@@ -89,6 +113,25 @@ public class FlinkStreamTopology {
             st.env.execute(st.getVariables().get(Constants.APPLICATION_ID));
         }
         return st;
+    }
+
+    /**
+     * Find all queues and wrap them in FlinkQueues.
+     *
+     * @param doc XML document
+     * @param st  stream topology
+     */
+    private static void initFlinkServices(Document doc, FlinkStreamTopology st) throws Exception {
+        NodeList serviceList = doc.getDocumentElement().getElementsByTagName("service");
+        ServiceHandler serviceHandler = new ServiceHandler(ObjectFactory.newInstance());
+        for (int iq = 0; iq < serviceList.getLength(); iq++) {
+            Element element = (Element) serviceList.item(iq);
+            if (serviceHandler.handles(element)) {
+                serviceHandler.handle(element, st);
+                FlinkService flinkService = (FlinkService) serviceHandler.getFunction();
+                st.flinkServices.add(flinkService);
+            }
+        }
     }
 
     /**

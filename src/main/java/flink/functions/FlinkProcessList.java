@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import flink.QueueInjection;
+import flink.ServiceInjection;
 import stream.Data;
 import stream.FlinkStreamTopology;
 import stream.ProcessContext;
@@ -24,8 +25,8 @@ import stream.runtime.setup.factory.ProcessorFactory;
 import stream.util.Variables;
 
 /**
- * Own implementation of FlatMapFunction for a list of processors (<process>...</process>).
- * FlatMap required to be sure all items stored in queues are collected.
+ * Own implementation of FlatMapFunction for a list of processors (<process>...</process>). FlatMap
+ * required to be sure all items stored in queues are collected.
  *
  * @author alexey
  */
@@ -37,6 +38,11 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
      * List of queues
      */
     private List<FlinkQueue> flinkQueues;
+
+    /**
+     * List of services
+     */
+    private List<FlinkService> flinkServices;
 
     /**
      * List of processors to be executed
@@ -62,7 +68,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         this.variables = streamTopology.getVariables();
         this.element = el;
         String processId;
-        if (el.hasAttribute("id")){
+        if (el.hasAttribute("id")) {
             processId = el.getAttribute("id");
         } else {
             processId = UUID.randomUUID().toString();
@@ -73,11 +79,15 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         // add only queues that are used in this ProcessorList
         List<String> listOfOutputQueues = getListOfOutputQueues();
         flinkQueues = new ArrayList<>(0);
-        for (FlinkQueue queue : streamTopology.flinkQueues){
-            if (listOfOutputQueues.contains(queue.getQueueName().toLowerCase())){
+        for (FlinkQueue queue : streamTopology.flinkQueues) {
+            if (listOfOutputQueues.contains(queue.getQueueName().toLowerCase())) {
                 flinkQueues.add(queue);
             }
         }
+
+        // add services
+        this.flinkServices = streamTopology.flinkServices;
+
         log.debug("Processors for '" + el + "' initialized.");
     }
 
@@ -118,6 +128,9 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         //
         QueueInjection queueInjection = new QueueInjection(flinkQueues);
         pf.addCreationHandler(queueInjection);
+
+        ServiceInjection serviceInjection = new ServiceInjection(flinkServices);
+        pf.addCreationHandler(serviceInjection);
 
         log.debug("Creating processor-list from element {}", element);
         List<Processor> list = pf.createNestedProcessors(element);
