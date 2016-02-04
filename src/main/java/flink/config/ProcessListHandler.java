@@ -1,6 +1,5 @@
 package flink.config;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -33,18 +32,7 @@ public class ProcessListHandler extends FlinkConfigHandler {
                 throw new Exception("Missing 'id' attribute for process element!");
             }
 
-            log.info("  > Creating process-bolt with id '{}'", id);
-
-            //TODO: add parallelism
-            String copies = el.getAttribute("copies");
-            Integer workers = 1;
-            if (copies != null && !copies.isEmpty()) {
-                try {
-                    workers = Integer.parseInt(copies);
-                } catch (Exception e) {
-                    throw new RuntimeException("Invalid number of copies '" + copies + "' specified!");
-                }
-            }
+            log.info("  > Creating process-function with id '{}'", id);
 
             function = new FlinkProcessList(st, el);
         }
