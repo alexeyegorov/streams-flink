@@ -63,8 +63,8 @@ public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFun
             String className = el.getAttribute("class");
             ObjectFactory objectFactory = ObjectFactory.newInstance();
             Map<String, String> params = objectFactory.getAttributes(el);
-            streamProcessor = (AbstractStream)
-                    objectFactory.create(className, params, objectFactory.createConfigDocument(el), this.variables);
+            streamProcessor = (AbstractStream) objectFactory.create(
+                    className, params, ObjectFactory.createConfigDocument(el), this.variables);
             streamProcessor.init();
         }
     }
@@ -86,7 +86,6 @@ public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFun
             try {
                 Data data = streamProcessor.read();
                 if (data != null) {
-                    log.info("PARALLEL {}", data.get("MSimSourcePos.fAz"));
                     ctx.collect(data);
                 } else {
                     isRunning = false;
