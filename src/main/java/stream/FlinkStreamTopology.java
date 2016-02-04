@@ -25,6 +25,7 @@ import flink.functions.FlinkQueue;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 import stream.util.Variables;
+import stream.util.XIncluder;
 import stream.util.XMLUtils;
 
 /**
@@ -63,6 +64,9 @@ public class FlinkStreamTopology {
 
         // search for 'application' or 'container' tag and extract its ID
         st.getVariables().put(Constants.APPLICATION_ID, getAppId(doc));
+
+        // handle <include../>
+        doc = new XIncluder().perform(doc, st.getVariables());
 
         // handle properties and save them to variables
         st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
