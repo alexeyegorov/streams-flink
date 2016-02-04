@@ -62,7 +62,6 @@ public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFun
         if (getInstance() == null) {
             String className = el.getAttribute("class");
             ObjectFactory objectFactory = ObjectFactory.newInstance();
-    //        objectFactory.addVariables(variables);
             Map<String, String> params = objectFactory.getAttributes(el);
             streamProcessor = (AbstractStream)
                     objectFactory.create(className, params, objectFactory.createConfigDocument(el), this.variables);

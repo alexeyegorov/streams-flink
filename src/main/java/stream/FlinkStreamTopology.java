@@ -94,12 +94,12 @@ public class FlinkStreamTopology {
     /**
      * Find ProcessorLists and handle them to become FlatMap functions.
      *
-     * @param doc XML document
-     * @param st stream topology
+     * @param doc     XML document
+     * @param st      stream topology
      * @param sources list of sources / queues
      * @return true if all functions can be applied; false if something goes wrong.
      */
-    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st, HashMap<String, DataStream<Data>> sources){
+    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st, HashMap<String, DataStream<Data>> sources) {
         //TODO we do not use a list here, but only one handler at the moment
         ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
         handlers.add(new ProcessListHandler(ObjectFactory.newInstance()));
@@ -156,11 +156,12 @@ public class FlinkStreamTopology {
     /**
      * Inspect attributes of the given element whether they contain special attribute to define
      * level of parallelism. If nothing defined, return 1.
+     *
      * @param element part of xml
      * @return level of parallelism defined in xml if attribute found; otherwise: 1
      */
-    private static int getParallelism(Element element){
-        if (element.hasAttribute(Constants.NUM_WORKERS)){
+    private static int getParallelism(Element element) {
+        if (element.hasAttribute(Constants.NUM_WORKERS)) {
             return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
         }
         return 1;
@@ -223,8 +224,8 @@ public class FlinkStreamTopology {
                 }
                 DataStream<Data> source = st.env
                         .addSource(sourceHandler.getFunction(), id)
-                        .setParallelism(getParallelism(item))
-                        .disableChaining();
+                        .setParallelism(getParallelism(item));
+//                        .disableChaining();
 
                 // put this source into the hashmap
                 sources.put(id, source);
