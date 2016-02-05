@@ -213,7 +213,7 @@ public class FlinkStreamTopology {
         if (element.hasAttribute(Constants.NUM_WORKERS)) {
             return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
         }
-        return 1;
+        return Constants.DEFAULT_PARALLELISM;
     }
 
     /**
