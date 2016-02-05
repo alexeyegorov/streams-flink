@@ -142,58 +142,64 @@ public class FlinkStreamTopology {
      * @param sources list of sources / queues
      * @return true if all functions can be applied; false if something goes wrong.
      */
-    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st, HashMap<String, DataStream<Data>> sources) {
-        //TODO we do not use a list here, but only one handler at the moment
-        ArrayList<FlinkConfigHandler> handlers = new ArrayList<>();
-        handlers.add(new ProcessListHandler(ObjectFactory.newInstance()));
+    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st,
+                                              HashMap<String, DataStream<Data>> sources) {
+        // check if any function is found to be applied onto data stream
+        // flink topology won't stop, if some queue is mentioned but not used and if processor list
+        // is using an input queue that is not filled
+        boolean anyFunctionFound = false;
+
+        // create processor list handler
+        ProcessListHandler handler = new ProcessListHandler(ObjectFactory.newInstance());
+
+        //TODO use getElementsByTagName?
         NodeList list = doc.getDocumentElement().getChildNodes();
         int length = list.getLength();
-        for (FlinkConfigHandler handler : handlers) {
+        for (int i = 0; i < length; i++) {
+            Node node = list.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                final Element el = (Element) node;
 
-            for (int i = 0; i < length; i++) {
-                Node node = list.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    final Element el = (Element) node;
-
-                    if (handler.handles(el)) {
-                        log.info("--------------------------------------------------------------------------------");
-                        log.info("Handling element '{}'", node.getNodeName());
-                        try {
-                            handler.handle(el, st);
-                        } catch (Exception e) {
-                            log.error("Handler {} could not handle element {}.", handler, el);
-                            return false;
+                if (handler.handles(el)) {
+                    log.info("--------------------------------------------------------------------------------");
+                    log.info("Handling element '{}'", node.getNodeName());
+                    try {
+                        handler.handle(el, st);
+                    } catch (Exception e) {
+                        log.error("Handler {} could not handle element {}.", handler, el);
+                        return false;
+                    }
+                    String input = el.getAttribute("input");
+                    log.info("--------------------------------------------------------------------------------");
+                    if (ProcessListHandler.class.isInstance(handler)) {
+                        // apply processors
+                        FlinkProcessList function = (FlinkProcessList) handler.getFunction();
+                        if (!sources.containsKey(input)) {
+                            log.error("Input '{}' has not been defined or no other processor is " +
+                                    "filling this input queue. Define 'stream' or " +
+                                    "put processor list after the processor list defining the " +
+                                    "output queue with this input name.", input);
+                            continue;
                         }
-                        String input = el.getAttribute("input");
-                        log.info("--------------------------------------------------------------------------------");
-                        if (ProcessListHandler.class.isInstance(handler)) {
-                            // apply processors
-                            FlinkProcessList function = (FlinkProcessList) handler.getFunction();
-                            if (!sources.containsKey(input)) {
-                                log.error("Input '{}' has not been defined. Define 'stream' or " +
-                                        "put process list after the process list defining the " +
-                                        "output queue with this input name.", input);
-                                return false;
-                            }
 
-                            DataStream<Data> dataStream = sources.get(input)
-                                    .flatMap(function)
-                                    .setParallelism(getParallelism(el));
+                        DataStream<Data> dataStream = sources.get(input)
+                                .flatMap(function)
+                                .setParallelism(getParallelism(el));
 
-                            // detect output queues
-                            List<String> outputQueues = function.getListOfOutputQueues();
+                        // detect output queues
+                        List<String> outputQueues = function.getListOfOutputQueues();
 
-                            // split the data stream if there are any queues used inside
-                            // of process list
-                            if (outputQueues.size() > 0) {
-                                splitDataStream(sources, dataStream, outputQueues);
-                            }
+                        // split the data stream if there are any queues used inside
+                        // of process list
+                        if (outputQueues.size() > 0) {
+                            splitDataStream(sources, dataStream, outputQueues);
                         }
+                        anyFunctionFound = true;
                     }
                 }
             }
         }
-        return true;
+        return anyFunctionFound;
     }
 
     /**
