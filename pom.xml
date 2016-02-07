@@ -6,7 +6,7 @@
     <groupId>de.sfb876</groupId>
     <name>streams-flink</name>
     <artifactId>${artifactid}</artifactId>
-    <version>0.9.24-SNAPSHOT</version>
+    <version>0.9.25-SNAPSHOT</version>
 
 
     <properties>
@@ -14,7 +14,7 @@
         <flink.scope>provided</flink.scope>
         <flink.mainclass>flink.deploy</flink.mainclass>
         <skipTests>true</skipTests>
-        <streams.version>0.9.24-SNAPSHOT</streams.version>
+        <streams.version>0.9.25-SNAPSHOT</streams.version>
         <artifactid>streams-flink</artifactid>
         <flink.version>1.0-SNAPSHOT</flink.version>
     </properties>
@@ -25,14 +25,6 @@
             <id>sonatype-snapshots</id>
             <name>sonatype Snapshot Repository</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-        <repository>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>apache-repository</id>
-            <name>Maven Repository Switchboard</name>
-            <url>http://repository.apache.org/content/groups/snapshots/</url>
         </repository>
     </repositories>
 
@@ -67,15 +59,15 @@
 
     <developers>
         <developer>
-            <name>Christian Bockermann</name>
-            <email>christian.bockermann@cs.uni-dortmund.de</email>
+            <name>Alexey Egorov</name>
+            <email>alexey.egorov@tu-dortmund.de</email>
             <organization>Informatik LS8, TU-Dortmund</organization>
             <organizationUrl>http://www-ai.cs.uni-dortmund.de</organizationUrl>
             <timezone>+1</timezone>
         </developer>
         <developer>
-            <name>Alexey Egorov</name>
-            <email>alexey.egorov@tu-dortmund.de</email>
+            <name>Christian Bockermann</name>
+            <email>christian.bockermann@cs.uni-dortmund.de</email>
             <organization>Informatik LS8, TU-Dortmund</organization>
             <organizationUrl>http://www-ai.cs.uni-dortmund.de</organizationUrl>
             <timezone>+1</timezone>
@@ -212,109 +204,80 @@
 
 
     <dependencies>
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-cta</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.storm</groupId>
-                    <artifactId>storm</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.storm</groupId>
-                    <artifactId>storm-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>de.sfb876</groupId>-->
+            <!--<artifactId>streams-cta</artifactId>-->
+            <!--<version>0.0.1-SNAPSHOT</version>-->
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.storm</groupId>-->
+                    <!--<artifactId>storm</artifactId>-->
+                <!--</exclusion>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.apache.storm</groupId>-->
+                    <!--<artifactId>storm-core</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-hdfs</artifactId>
             <version>0.0.2</version>
         </dependency>
         <dependency>
-            <groupId>org.jwall</groupId>
-            <artifactId>streams-core</artifactId>
-            <version>${streams.version}</version>
-        </dependency>
-        <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-performance</artifactId>
-            <version>${streams.version}</version>
+            <version>0.9.25-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-storm</artifactId>
-            <version>${streams.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-java</artifactId>
-            <version>${flink.version}</version>
-            <scope>${flink.scope}</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-clients</artifactId>
-            <version>${flink.version}</version>
+            <version>0.9.25-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-storm</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jwall</groupId>
-            <artifactId>streams-runtime</artifactId>
-            <version>${streams.version}</version>
+            <groupId>de.sfb876</groupId>
+            <artifactId>fact-tools</artifactId>
+            <version>0.11.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>stream-runtime</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.sling</groupId>-->
+            <!--<artifactId>org.apache.sling.commons.json</artifactId>-->
+            <!--<version>2.0.2-incubator</version>-->
+        <!--</dependency>-->
+
+        <!-- FLINK -->
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_2.10</artifactId>
+            <version>${flink.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.12</version>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-storm_2.10</artifactId>
+            <version>${flink.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
-            <version>0.9.6</version>
+            <version>(0.9.6,]</version>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.commons.json</artifactId>
-            <version>2.0.2-incubator</version>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-java_2.10</artifactId>
+            <version>${flink.version}</version>
         </dependency>
+
     </dependencies>
 
     <profiles>

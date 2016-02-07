@@ -124,10 +124,10 @@ public class StreamTopology {
 
         List<ConfigHandler> handlers = new ArrayList<>();
         handlers.add(new SpoutHandler(of));
-        handlers.add(new stream.storm.config.QueueHandler(of, xml));
-        handlers.add(new StreamHandler(of, xml));
+        handlers.add(new stream.storm.config.QueueHandler(of));
+        handlers.add(new StreamHandler(of));
         handlers.add(new BoltHandler(of));
-        handlers.add(new ProcessHandler(of, xml));
+        handlers.add(new ProcessHandler(of));
 
         NodeList list = doc.getDocumentElement().getChildNodes();
         int length = list.getLength();
