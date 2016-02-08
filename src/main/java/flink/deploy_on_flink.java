@@ -13,12 +13,13 @@ import stream.FlinkStreamTopology;
 import stream.util.XMLUtils;
 
 /**
+ * Build and run Flink topology locally or deploy jar with this class as mainclass to your cluster.
+ *
  * @author alexey
  */
 public class deploy_on_flink {
 
     static Logger log = LoggerFactory.getLogger(deploy_on_flink.class);
-    public final static String UUID_ATTRIBUTE = "id";
 
     /**
      * Method to start cluster and run XML configuration as flink topology on it while setting the
@@ -45,7 +46,6 @@ public class deploy_on_flink {
         String xml = storm.run.createIDs(url.openStream());
 
         Document doc = XMLUtils.parseDocument(xml);
-        doc = XMLUtils.addUUIDAttributes(doc, UUID_ATTRIBUTE);
 
         log.info("Encoding document...");
         String enc = DocumentEncoder.encodeDocument(doc);
@@ -54,25 +54,34 @@ public class deploy_on_flink {
         Document decxml = DocumentEncoder.decodeDocument(enc);
         log.info("Decoded XML is: {}", XMLUtils.toString(decxml));
 
-        if (enc == null) {
-            return;
+        FlinkStreamTopology flinkStreamTopology = new FlinkStreamTopology(doc);
+        flinkStreamTopology.env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        flinkStreamTopology.env = StreamExecutionEnvironment.createRemoteEnvironment(
+//                "kirsche.cs.uni-dortmund.de", 6123, 1,
+//                "target/streams-flink-0.9.24-SNAPSHOT-flink-compiled.jar");
+
+        if (flinkStreamTopology.createTopology()) {
+            flinkStreamTopology.executeTopology();
+        } else {
+            log.info("Do not execute as there were errors while building the topology.");
         }
-
-        // create right stream topology
-//        TopologyBuilder stormBuilder = new TopologyBuilder();
-
-        FlinkStreamTopology st = FlinkStreamTopology.create(doc);
-
-//        log.info("Creating stream-topology...");
-//        FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
-////        topology.setParallelism(2);
-//
-//        // start local cluster and run created topology on it
-//        StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);
     }
 
+    /**
+     * Entry main method that extracts file path to XML configuration.
+     *
+     * @param args list of parameters
+     */
     public static void main(String[] args) throws Exception {
+        if (args.length < 1) {
+            log.error("Missing file path to XML configuration of streams job to run.");
+            return;
+        }
         File file = new File(args[0]);
+        if (!file.exists()) {
+            log.error("Path to XML configuration is not valid: {}", file.toString());
+            return;
+        }
         main(file.toURI().toURL());
     }
 }

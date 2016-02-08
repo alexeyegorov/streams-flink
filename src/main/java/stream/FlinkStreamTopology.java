@@ -36,6 +36,7 @@ import stream.util.XIncluder;
 import stream.util.XMLUtils;
 
 /**
+ * Topology builder similar to streams-storm builder.
  * @author alexey
  */
 public class FlinkStreamTopology {
@@ -43,6 +44,7 @@ public class FlinkStreamTopology {
     static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
 
     public final Variables variables = new Variables();
+    private Document doc;
 
     /**
      * List of queues used for inter-process communication.
@@ -54,7 +56,14 @@ public class FlinkStreamTopology {
      */
     public List<FlinkService> flinkServices = new ArrayList<>(0);
 
+    /**
+     * Stream execution environment created to execute Flink topology.
+     */
     public StreamExecutionEnvironment env;
+
+    public FlinkStreamTopology(Document doc) {
+        this.doc = doc;
+    }
 
     public Variables getVariables() {
         return variables;
@@ -63,22 +72,13 @@ public class FlinkStreamTopology {
     /**
      * Creates a new instance of a StreamTopology based on the given document and using stream
      * execution environment
-     *
-     * @param doc The DOM document that defines the topology.
      */
-    public static FlinkStreamTopology create(Document doc) throws Exception {
-
-        final FlinkStreamTopology st = new FlinkStreamTopology();
-        st.env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-        // add unique IDs
-        doc = XMLUtils.addUUIDAttributes(doc, Constants.UUID_ATTRIBUTE);
-
+    public boolean createTopology() throws Exception {
         // search for 'application' or 'container' tag and extract its ID
-        st.getVariables().put(Constants.APPLICATION_ID, getAppId(doc));
+        variables.put(Constants.APPLICATION_ID, getAppId(doc));
 
         // handle <include.../>
-        doc = new XIncluder().perform(doc, st.getVariables());
+        doc = new XIncluder().perform(doc, variables);
 
         //TODO remove output of XML or add it as a method
         TransformerFactory tf = TransformerFactory.newInstance();
@@ -93,29 +93,33 @@ public class FlinkStreamTopology {
                 new StreamResult(new OutputStreamWriter(System.out, "UTF-8")));
 
         // handle properties and save them to variables
-        st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
+        variables.addVariables(StreamTopology.handleProperties(doc, variables));
 
         // handle <service.../>
-        st.initFlinkServices(doc);
+        initFlinkServices(doc);
 
         // create stream sources (multiple are possible)
-        HashMap<String, DataStream<Data>> sources = st.initFlinkSources(doc);
+        HashMap<String, DataStream<Data>> sources = initFlinkSources(doc);
         if (sources == null) {
             log.error("No source was or could have been initialized.");
-            return null;
+            return false;
         }
 
         // create all possible queues
-        st.initFlinkQueues(doc);
+        initFlinkQueues(doc);
 
         // create processor list handler and apply it to ProcessorLists
-        if (st.initFlinkFunctions(doc, sources)) {
-            // set level of parallelism for the job
-            st.env.setParallelism(getParallelism(doc.getDocumentElement()));
-            // execute flink job if we were able to init all the functions
-            st.env.execute(st.getVariables().get(Constants.APPLICATION_ID));
-        }
-        return st;
+        return initFlinkFunctions(doc, sources);
+    }
+
+    /**
+     * Execute previously created topology.
+     */
+    public void executeTopology() throws Exception {
+        // set level of parallelism for the job
+        env.setParallelism(getParallelism(doc.getDocumentElement()));
+        // execute flink job if we were able to init all the functions
+        env.execute(getVariables().get(Constants.APPLICATION_ID));
     }
 
     /**
