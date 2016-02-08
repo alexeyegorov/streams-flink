@@ -60,7 +60,9 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
 
                 String prop = field.getName();
                 stream.annotations.Service sa = field.getAnnotation(stream.annotations.Service.class);
-                //TODO does this mean we can give service a name through XML? (not the id of the original service, but for the processor to add a special service)
+
+                // if annotation contains 'name' then use this name instead of fiel name
+                // (service can be named through XML configuration
                 if (sa != null && !sa.name().isEmpty()) {
                     prop = sa.name();
                 }
