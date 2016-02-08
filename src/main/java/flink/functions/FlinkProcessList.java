@@ -34,6 +34,12 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
 
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
 
+    //TODO: how does this work in a real cluster?!
+    /**
+     * Number of workers to be used for performance measuring of each worker
+     */
+    static int THREAD_NUMBER;
+
     /**
      * List of queues
      */
@@ -107,10 +113,14 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
 
     @Override
     protected void init() throws Exception {
+        String id = element.getAttribute("id") + "-node-" + THREAD_NUMBER++;
+        element.setAttribute("id", id);
+        context.set("process", id);
         process = createProcess();
         for (Processor p : process.getProcessors()) {
             ((StatefulProcessor) p).init(context);
         }
+        log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
     }
 
     /**
