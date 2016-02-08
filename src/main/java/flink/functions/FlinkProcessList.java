@@ -22,6 +22,7 @@ import stream.ProcessorList;
 import stream.StatefulProcessor;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.ProcessorFactory;
+import stream.storm.Constants;
 import stream.util.Variables;
 
 /**
@@ -80,7 +81,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
             processId = UUID.randomUUID().toString();
         }
         this.context = new FlinkContext(processId);
-        this.context.set("application.id", streamTopology.getVariables().get("application.id"));
+        this.context.set(Constants.APPLICATION_ID,
+                streamTopology.variables.get(Constants.APPLICATION_ID));
 
         // add only queues that are used in this ProcessorList
         List<String> listOfOutputQueues = getListOfOutputQueues();
