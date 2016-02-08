@@ -22,7 +22,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import flink.config.FlinkConfigHandler;
 import flink.config.ProcessListHandler;
 import flink.config.QueueHandler;
 import flink.config.ServiceHandler;
@@ -49,9 +48,13 @@ public class FlinkStreamTopology {
      * List of queues used for inter-process communication.
      */
     public List<FlinkQueue> flinkQueues = new ArrayList<>(0);
-    public StreamExecutionEnvironment env;
+
+    /**
+     * List of services
+     */
     public List<FlinkService> flinkServices = new ArrayList<>(0);
 
+    public StreamExecutionEnvironment env;
 
     public Variables getVariables() {
         return variables;
@@ -93,20 +96,20 @@ public class FlinkStreamTopology {
         st.getVariables().addVariables(StreamTopology.handleProperties(doc, st.getVariables()));
 
         // handle <service.../>
-        initFlinkServices(doc, st);
+        st.initFlinkServices(doc);
 
         // create stream sources (multiple are possible)
-        HashMap<String, DataStream<Data>> sources = initFlinkSources(doc, st);
+        HashMap<String, DataStream<Data>> sources = st.initFlinkSources(doc);
         if (sources == null) {
             log.error("No source was or could have been initialized.");
             return null;
         }
 
         // create all possible queues
-        initFlinkQueues(doc, st);
+        st.initFlinkQueues(doc);
 
         // create processor list handler and apply it to ProcessorLists
-        if (initFlinkFunctions(doc, st, sources)) {
+        if (st.initFlinkFunctions(doc, sources)) {
             // set level of parallelism for the job
             st.env.setParallelism(getParallelism(doc.getDocumentElement()));
             // execute flink job if we were able to init all the functions
@@ -119,17 +122,16 @@ public class FlinkStreamTopology {
      * Find all queues and wrap them in FlinkQueues.
      *
      * @param doc XML document
-     * @param st  stream topology
      */
-    private static void initFlinkServices(Document doc, FlinkStreamTopology st) throws Exception {
+    private void initFlinkServices(Document doc) throws Exception {
         NodeList serviceList = doc.getDocumentElement().getElementsByTagName("service");
         ServiceHandler serviceHandler = new ServiceHandler(ObjectFactory.newInstance());
         for (int iq = 0; iq < serviceList.getLength(); iq++) {
             Element element = (Element) serviceList.item(iq);
             if (serviceHandler.handles(element)) {
-                serviceHandler.handle(element, st);
+                serviceHandler.handle(element, this);
                 FlinkService flinkService = (FlinkService) serviceHandler.getFunction();
-                st.flinkServices.add(flinkService);
+                flinkServices.add(flinkService);
             }
         }
     }
@@ -138,12 +140,10 @@ public class FlinkStreamTopology {
      * Find ProcessorLists and handle them to become FlatMap functions.
      *
      * @param doc     XML document
-     * @param st      stream topology
      * @param sources list of sources / queues
      * @return true if all functions can be applied; false if something goes wrong.
      */
-    private static boolean initFlinkFunctions(Document doc, FlinkStreamTopology st,
-                                              HashMap<String, DataStream<Data>> sources) {
+    private boolean initFlinkFunctions(Document doc, HashMap<String, DataStream<Data>> sources) {
         // check if any function is found to be applied onto data stream
         // flink topology won't stop, if some queue is mentioned but not used and if processor list
         // is using an input queue that is not filled
@@ -164,7 +164,7 @@ public class FlinkStreamTopology {
                     log.info("--------------------------------------------------------------------------------");
                     log.info("Handling element '{}'", node.getNodeName());
                     try {
-                        handler.handle(el, st);
+                        handler.handle(el, this);
                     } catch (Exception e) {
                         log.error("Handler {} could not handle element {}.", handler, el);
                         return false;
@@ -245,9 +245,8 @@ public class FlinkStreamTopology {
      * Find all sources (streams) and wrap them in FlinkSources.
      *
      * @param doc XML document
-     * @param st  stream topology
      */
-    private static HashMap<String, DataStream<Data>> initFlinkSources(Document doc, FlinkStreamTopology st) {
+    private HashMap<String, DataStream<Data>> initFlinkSources(Document doc) {
         NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
         if (streamList.getLength() < 1) {
             log.debug("At least 1 stream source has to be defined.");
@@ -266,12 +265,12 @@ public class FlinkStreamTopology {
 
                 // handle the source and create data stream for it
                 try {
-                    sourceHandler.handle(item, st);
+                    sourceHandler.handle(item, this);
                 } catch (Exception e) {
                     log.error("Error while handling the source for item {}", item);
                     return null;
                 }
-                DataStream<Data> source = st.env
+                DataStream<Data> source = env
                         .addSource(sourceHandler.getFunction(), id)
                         .setParallelism(getParallelism(item));
 //                        .disableChaining();
@@ -290,18 +289,17 @@ public class FlinkStreamTopology {
      * Find all queues and wrap them in FlinkQueues.
      *
      * @param doc XML document
-     * @param st  stream topology
      */
-    private static void initFlinkQueues(Document doc, FlinkStreamTopology st) throws Exception {
+    private void initFlinkQueues(Document doc) throws Exception {
         NodeList queueList = doc.getDocumentElement().getElementsByTagName("queue");
         ObjectFactory of = ObjectFactory.newInstance();
         QueueHandler queueHandler = new QueueHandler(of);
         for (int iq = 0; iq < queueList.getLength(); iq++) {
             Element element = (Element) queueList.item(iq);
             if (queueHandler.handles(element)) {
-                queueHandler.handle(element, st);
+                queueHandler.handle(element, this);
                 FlinkQueue flinkQueue = (FlinkQueue) queueHandler.getFunction();
-                st.flinkQueues.add(flinkQueue);
+                flinkQueues.add(flinkQueue);
             }
         }
     }
