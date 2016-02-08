@@ -35,22 +35,12 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
 
     @Override
     public void processorCreated(Processor p, Element from) throws Exception {
-        // save all properties to be set for possibly several services
+        // save name of all properties to be set for possibly several services
+        // names can be field names or service names set through XML configuration
         List<String> props = new ArrayList<>(0);
 
         // collect all declared field (even from superclasses)
-        //TODO what if several superclasses?
-        Field[] declaredFields = p.getClass().getDeclaredFields();
-        List<Field> fields = new ArrayList<>(0);
-        fields.addAll(Arrays.asList(declaredFields));
-        Class<?> serv = p.getClass();
-        while (serv.getSuperclass() != Object.class) {
-            Class<?> superclass = serv.getSuperclass();
-            Field[] declaredFields1 = superclass.getDeclaredFields();
-            List<Field> fields1 = Arrays.asList(declaredFields1);
-            fields.addAll(fields1);
-            serv = superclass;
-        }
+        List<Field> fields = getDeclaredFields(p);
 
         // iterate through declared fields and search for a service-field.
         for (Field field : fields) {
@@ -146,6 +136,28 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
                 }
             }
         }
+    }
+
+    /**
+     * Collect declared field from current class and its superclasses.
+     *
+     * @param p processor with declared fields
+     * @return list of found declared fields
+     */
+    private List<Field> getDeclaredFields(Processor p) {
+        //TODO what if several superclasses?
+        Field[] declaredFields = p.getClass().getDeclaredFields();
+        List<Field> fields = new ArrayList<>(0);
+        fields.addAll(Arrays.asList(declaredFields));
+        Class<?> serv = p.getClass();
+        while (serv.getSuperclass() != Object.class) {
+            Class<?> superclass = serv.getSuperclass();
+            Field[] declaredFields1 = superclass.getDeclaredFields();
+            List<Field> fields1 = Arrays.asList(declaredFields1);
+            fields.addAll(fields1);
+            serv = superclass;
+        }
+        return fields;
     }
 
     /**
