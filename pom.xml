@@ -16,7 +16,7 @@
         <skipTests>true</skipTests>
         <streams.version>0.9.25-SNAPSHOT</streams.version>
         <artifactid>streams-flink</artifactid>
-        <flink.version>1.0-SNAPSHOT</flink.version>
+        <flink.version>0.10.2</flink.version>
     </properties>
 
 
@@ -238,13 +238,13 @@
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>fact-tools</artifactId>
-            <version>0.11.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>de.sfb876</groupId>
-                    <artifactId>stream-runtime</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>0.12.3</version>
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>de.sfb876</groupId>-->
+                    <!--<artifactId>stream-runtime</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
         </dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.sling</groupId>-->
@@ -254,15 +254,20 @@
 
         <!-- FLINK -->
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-clients_2.10</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.apache.flink</groupId>-->
+            <!--<artifactId>flink-clients_2.10</artifactId>-->
+            <!--<version>${flink.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.flink</groupId>-->
+            <!--<artifactId>flink-java</artifactId>-->
+            <!--<version>${flink.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-storm_2.10</artifactId>
+            <artifactId>flink-storm_2.11</artifactId>
             <version>${flink.version}</version>
         </dependency>
 
@@ -274,7 +279,7 @@
 
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.10</artifactId>
+            <artifactId>flink-streaming-java_2.11</artifactId>
             <version>${flink.version}</version>
         </dependency>
 
