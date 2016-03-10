@@ -101,7 +101,7 @@ public class Test {
         TopologyBuilder stormBuilder = new TopologyBuilder();
         StreamTopology streamGraph = StreamTopology.build(xml, stormBuilder);
 
-        FlinkSubmitter.submitTopology(id, config, FlinkTopology.createTopology(stormBuilder));
+//        FlinkSubmitter.submitTopology(id, config, FlinkTopology.createTopology(stormBuilder));
 
         // NimbusClient nimbusClient = NimbusClient
         // .getConfiguredClient(config);

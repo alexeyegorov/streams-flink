@@ -33,7 +33,6 @@ import stream.runtime.setup.factory.ObjectFactory;
 import stream.storm.Constants;
 import stream.util.Variables;
 import stream.util.XIncluder;
-import stream.util.XMLUtils;
 
 /**
  * Topology builder similar to streams-storm builder.

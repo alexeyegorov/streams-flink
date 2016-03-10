@@ -19,6 +19,7 @@ import stream.util.XMLUtils;
  */
 public class deploy_on_flink {
 
+
     static Logger log = LoggerFactory.getLogger(deploy_on_flink.class);
 
     /**
@@ -58,7 +59,7 @@ public class deploy_on_flink {
         flinkStreamTopology.env = StreamExecutionEnvironment.getExecutionEnvironment();
 //        flinkStreamTopology.env = StreamExecutionEnvironment.createRemoteEnvironment(
 //                "kirsche.cs.uni-dortmund.de", 6123, 1,
-//                "target/streams-flink-0.9.24-SNAPSHOT-flink-compiled.jar");
+//                "target/streams-flink-0.9.25-SNAPSHOT-flink-compiled.jar");
 
         if (flinkStreamTopology.createTopology()) {
             flinkStreamTopology.executeTopology();
