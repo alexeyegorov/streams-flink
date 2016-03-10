@@ -48,92 +48,36 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
             if (DependencyInjection.isServiceImplementation(field.getType())) {
                 log.info("Checking service-field {}", field.getName());
 
-                String prop = field.getName();
+                String serviceName = field.getName();
                 stream.annotations.Service sa = field.getAnnotation(stream.annotations.Service.class);
 
                 // if annotation contains 'name' then use this name instead of fiel name
                 // (service can be named through XML configuration
                 if (sa != null && !sa.name().isEmpty()) {
-                    prop = sa.name();
+                    serviceName = sa.name();
                 }
-                props.add(prop);
+                props.add(serviceName);
 
                 log.info("Service field '{}' relates to property '{}' for processor {}",
-                        field.getName(), prop, p);
-//                if (prop.equals(property)) {
-//                    Class<?> valueType;
-//
-//                    //TODO handle the case of an array!? when does it happen?
-////                    if (field.getType().isArray()) {
-////                        valueType = field.getType().getComponentType();
-////                        if (valueType.isAssignableFrom(Service.class)) {
-////                            boolean orig = field.isAccessible();
-////                            field.setAccessible(true);
-////                            field.set(p, );
-////                            field.setAccessible(orig);
-////                        } else {
-////                            throw new Exception("Array type mis-match! Field '" + field.getName() + "' of type "
-////                                    + field.getType().getComponentType() + "[] is not assignable from "
-////                                    + resolvedRefs.getClass().getComponentType() + "[]!");
-////                        }
-////
-////                    } else {
-//                    valueType = field.getType();
-//                    //TODO resolvedRefs are Services!
-//                    FlinkService flinkService = getFlinkService(prop);
-//                    if (flinkService != null) {
-//                        if (valueType.isAssignableFrom(Service.class)) {
-//                                boolean orig = field.isAccessible();
-//                                field.setAccessible(true);
-//                                field.set(p, flinkService.getService());
-//                                field.setAccessible(orig);
-//                        } else {
-//                            throw new Exception("Field '" + field.getName()
-//                                    + "' is not assignable with object of type "
-//                                    + flinkService.getService().getClass());
-//                        }
-//                    } else {
-//                        log.error("FlinkService with name {} were not found.", prop);
-//                    }
-//                    }
+                        field.getName(), serviceName, p);
 
-//                }
+                try {
+                    boolean accessible = field.isAccessible();
+                    field.setAccessible(true);
 
-            }
-        }
-
-
-        for (String property : props) {
-            for (Method m : p.getClass().getMethods()) {
-                String name = "set" + property.toLowerCase();
-                if (m.getName().toLowerCase().equalsIgnoreCase(name)
-                        && m.getParameterTypes().length == 1) {
-
-                    Class<?> type = m.getParameterTypes()[0];
-                    if (type.isArray()) {
-                        //TODO handle array init for services
-                        log.error("Trying to handle array initialization for a service, but it " +
-                                "is not implemented yet. Please, contact developer.");
-
-//                        Object values = Array.newInstance(type.getComponentType(), resolvedRefs.length);
-//                        for (int i = 0; i < Array.getLength(values); i++) {
-//                            Array.set(values, i, (resolvedRefs[i]));
-//                        }
-//                        log.debug("Injecting   '{}'.{}   <-- " + values, p, property);
-//                        log.debug("Calling method  '{}'", m);
-//                        m.invoke(p, values);
-
+                    FlinkService stormService = getFlinkService(serviceName);
+                    if (stormService != null) {
+                        log.debug("Injecting   '{}'.{}   <-- " + stormService, p, serviceName);
+                        field.set(p, stormService.getService());
                     } else {
-                        FlinkService flinkService = getFlinkService(property);
-                        if (flinkService != null) {
-                            log.debug("Injecting   '{}'.{}   <-- " + flinkService, p, property);
-                            log.debug("Calling method  '{}' with arg '{}'", m, flinkService);
-                            m.invoke(p, flinkService.getService());
-                        } else {
-                            log.error("FlinkService with name {} were not found.", property);
-                        }
+                        log.error("StormService with name {} were not found.", serviceName);
                     }
+
+                    field.setAccessible(accessible);
+                } catch (IllegalAccessException e) {
+                    log.error("Field {} could not have been set", serviceName);
                 }
+
             }
         }
     }
