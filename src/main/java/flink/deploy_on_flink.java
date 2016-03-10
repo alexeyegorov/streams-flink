@@ -78,7 +78,7 @@ public class deploy_on_flink {
             return;
         }
         File file = new File(args[0]);
-        if (!file.exists()) {
+        if (!file.getAbsoluteFile().exists()) {
             log.error("Path to XML configuration is not valid: {}", file.toString());
             return;
         }
