@@ -120,7 +120,9 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         context.set("process", id);
         process = createProcess();
         for (Processor p : process.getProcessors()) {
-            ((StatefulProcessor) p).init(context);
+            if (p instanceof StatefulProcessor) {
+                ((StatefulProcessor) p).init(context);
+            }
         }
         log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
     }
