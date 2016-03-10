@@ -215,7 +215,13 @@ public class FlinkStreamTopology {
      */
     private static int getParallelism(Element element) {
         if (element.hasAttribute(Constants.NUM_WORKERS)) {
-            return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
+            try {
+                return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
+            }catch(NumberFormatException ex){
+                log.error("Unable to parse defined level of parallelism: {}\n" +
+                        "Returning default parallelism level: {}",
+                        element.getAttribute(Constants.NUM_WORKERS), Constants.DEFAULT_PARALLELISM);
+            }
         }
         return Constants.DEFAULT_PARALLELISM;
     }
