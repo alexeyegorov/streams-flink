@@ -98,7 +98,7 @@ public class deploy {
             }
 
             log.info("Submitting topology '{}'", name);
-            FlinkSubmitter.submitTopology(name, config, FlinkTopology.createTopology(stormBuilder));
+//            FlinkSubmitter.submitTopology(name, config, FlinkTopology.createTopology(stormBuilder));
 
         } catch (Exception e) {
             e.printStackTrace();

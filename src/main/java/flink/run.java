@@ -104,11 +104,11 @@ public class run {
         TopologyBuilder stormBuilder = new TopologyBuilder();
         StreamTopology.build(doc, stormBuilder);
         log.info("Creating stream-topology...");
-        FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
+//        FlinkTopology topology = FlinkTopology.createTopology(stormBuilder);
 //        topology.setParallelism(2);
 
         // start local cluster and run created topology on it
-        StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);
+//        StreamTopologyBuilder.runOnLocalCluster(topology, conf, time);
     }
 
     /**
