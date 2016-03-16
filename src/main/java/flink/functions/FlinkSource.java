@@ -4,12 +4,15 @@ import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.util.Map;
 
 import stream.Data;
 import stream.io.AbstractStream;
+import stream.io.multi.AbstractMultiStream;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.util.Variables;
 
@@ -64,6 +67,19 @@ public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFun
             Map<String, String> params = objectFactory.getAttributes(el);
             streamProcessor = (AbstractStream) objectFactory.create(
                     className, params, ObjectFactory.createConfigDocument(el), this.variables);
+            if (el.hasChildNodes()) {
+                if (streamProcessor instanceof AbstractMultiStream) {
+                    NodeList stream = el.getElementsByTagName("stream");
+                    for (int i = 0; i < stream.getLength(); i++) {
+                        Element streamElement = (Element) stream.item(i);
+                        AbstractStream subStream = (AbstractStream) objectFactory.create(
+                                streamElement.getAttribute("class"), objectFactory.getAttributes(streamElement),
+                                ObjectFactory.createConfigDocument(streamElement), this.variables);
+                        ((AbstractMultiStream) streamProcessor)
+                                .addStream(streamElement.getAttribute("id"), subStream);
+                    }
+                }
+            }
             streamProcessor.init();
         }
     }
