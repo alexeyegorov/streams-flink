@@ -11,8 +11,10 @@ import java.util.Map;
 
 import stream.Data;
 import stream.io.AbstractStream;
+import stream.io.Stream;
 import stream.io.multi.AbstractMultiStream;
 import stream.runtime.setup.factory.ObjectFactory;
+import stream.runtime.setup.factory.StreamFactory;
 import stream.util.Variables;
 
 /**
@@ -27,7 +29,7 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
     /**
      * Stream processor embedded inside of SourceFunction
      */
-    protected AbstractStream streamProcessor;
+    protected Stream streamProcessor;
 
     /**
      * Flag to stop retrieving elements from the source.
@@ -58,25 +60,8 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
     /**
      * init() is called inside of super class' readResolve() method.
      */
-    protected synchronized void init() throws Exception {
-        String className = el.getAttribute("class");
-        ObjectFactory objectFactory = ObjectFactory.newInstance();
-        Map<String, String> params = objectFactory.getAttributes(el);
-        streamProcessor = (AbstractStream) objectFactory.create(
-                className, params, ObjectFactory.createConfigDocument(el), this.variables);
-        if (el.hasChildNodes()) {
-            if (streamProcessor instanceof AbstractMultiStream) {
-                NodeList stream = el.getElementsByTagName("stream");
-                for (int i = 0; i < stream.getLength(); i++) {
-                    Element streamElement = (Element) stream.item(i);
-                    AbstractStream subStream = (AbstractStream) objectFactory.create(
-                            streamElement.getAttribute("class"), objectFactory.getAttributes(streamElement),
-                            ObjectFactory.createConfigDocument(streamElement), this.variables);
-                    ((AbstractMultiStream) streamProcessor)
-                            .addStream(streamElement.getAttribute("id"), subStream);
-                }
-            }
-        }
+    protected void init() throws Exception {
+        streamProcessor = StreamFactory.createStream(ObjectFactory.newInstance(), el, variables);
         streamProcessor.init();
     }
 
