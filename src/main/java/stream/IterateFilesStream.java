@@ -174,7 +174,7 @@ public class IterateFilesStream extends AbstractMultiStream {
 
                 // check if some source files are still there,
                 // no more files to read -> stop the stream
-                if (fileStatuses.size() > 0) {
+                if (fileStatuses.size() == 0) {
                     return null;
                 }
 
