@@ -48,6 +48,10 @@ public class IterateFilesStream extends AbstractMultiStream {
         super();
     }
 
+    public IterateFilesStream(SourceURL url) {
+        super(url);
+    }
+
     /**
      * Filter files in HDFS folder.
      */
