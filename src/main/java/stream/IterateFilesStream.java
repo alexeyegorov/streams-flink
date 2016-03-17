@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,13 +35,14 @@ public class IterateFilesStream extends AbstractMultiStream {
             description = "If something goes wrong while reading a file, just continue with the next one.")
     boolean skipErrors = true;
 
-    private FileStatus[] fileStatuses;
+    private ArrayList<FileStatus> fileStatuses;
     private int fileCounter;
 
     private AbstractStream stream;
     private int failedFilesCounter;
     private ArrayList<String> failedFilesList;
     private int countReadNext;
+    private FileSystem fs;
 
     public IterateFilesStream() {
         super();
@@ -69,26 +71,59 @@ public class IterateFilesStream extends AbstractMultiStream {
     @Override
     public void init() throws Exception {
 
-        Configuration config = new Configuration();
-        FileSystem fs = FileSystem.get(new URI(this.url.toString()), config);
+        // initialize variables
+        failedFilesList = new ArrayList<>(0);
+        fileCounter = 1;
+        countReadNext = 1;
 
+        // retrieve file system that contains all information about HDFS file system
+        fs = FileSystem.get(new URI(this.url.toString()), new Configuration());
+
+        // correct setting for working directory
         correctWorkingDirectory(fs);
 
         String path = this.url.getPath();
         if (!path.endsWith("/")) {
             path += "/";
         }
-        fileStatuses = fs.listStatus(new Path(path), new HDFSPathFilter());
-        log.info("Found {} files in the HDFS folder.", fileStatuses.length);
-        fileCounter = 0;
-        countReadNext = 0;
+
+        // find all files in folder and its subfolders
+        fileStatuses = retrieveFilesRecursively(path);
+        log.info("Found {} files in the HDFS folder.", this.fileStatuses.size());
+
         if (stream == null && additionOrder != null) {
             stream = (AbstractStream) streams.get(additionOrder.get(0));
-            stream.setUrl(new SourceURL(fileStatuses[fileCounter].getPath().toString()));
+            stream.setUrl(new SourceURL(this.fileStatuses.remove(0).getPath().toString()));
             stream.init();
             log.info("Streaming file {}: {}", fileCounter, stream.getUrl().toString());
             fileCounter++;
         }
+    }
+
+    /**
+     * Retrieve all files contained in given path and its subfolders.
+     *
+     * @param path path to the folder containing files and folders
+     * @return list of all files in this folder and its subfolders
+     */
+    private ArrayList<FileStatus> retrieveFilesRecursively(String path) throws IOException {
+        ArrayList<FileStatus> result = new ArrayList<>(0);
+
+        // retrieve all files and for folders call this method recursively
+        FileStatus[] folders = fs.listStatus(new Path(path));
+        for (FileStatus folder : folders) {
+            if (folder.isDirectory()) {
+                result.addAll(retrieveFilesRecursively(folder.getPath().toString()));
+                log.info("Adding files from {}", folder.getPath().toString());
+            }
+        }
+
+        // add files that match filter
+        FileStatus[] filteredFiles = fs.listStatus(new Path(path), new HDFSPathFilter());
+
+        // add found files to the resulted list
+        result.addAll(new ArrayList<>(Arrays.asList(filteredFiles)));
+        return result;
     }
 
     /**
@@ -103,7 +138,7 @@ public class IterateFilesStream extends AbstractMultiStream {
             int port = this.url.getPort();
             String protocol = this.url.getProtocol();
             String workingDirectory = protocol + "://" + host + ":" + port + "/";
-            log.info("\nGiven URL is {}.\n But working directory is set to {}.\nChanging it to {}",
+            log.info("\nGiven URL is {}.\nBut working directory is set to {}.\nChanging it to {}",
                     url.toString(), fs.getWorkingDirectory(), workingDirectory);
             fs.setWorkingDirectory(new Path(workingDirectory));
         }
@@ -112,6 +147,8 @@ public class IterateFilesStream extends AbstractMultiStream {
     @Override
     public void close() throws Exception {
         super.close();
+
+        log.info("Processed {} files while failed to read {} files.", fileCounter, failedFilesCounter);
 
         // log all skipped files
         if (failedFilesCounter > 0) {
@@ -127,17 +164,21 @@ public class IterateFilesStream extends AbstractMultiStream {
     public Data readNext() throws Exception {
 
         try {
+            // try read data item
             Data data = stream.read();
+
+            // if stream has ended, try to start new one
             if (data == null) {
-                //get new file
+                // get new file
                 stream.close();
-                //no data was returned
-                if (fileStatuses.length <= fileCounter) {
-                    //no more files to read -> stop the stream
+
+                // check if some source files are still there,
+                // no more files to read -> stop the stream
+                if (fileStatuses.size() > 0) {
                     return null;
                 }
 
-                stream.setUrl(new SourceURL(fileStatuses[fileCounter].getPath().toString()));
+                stream.setUrl(new SourceURL(fileStatuses.remove(0).getPath().toString()));
                 stream.init();
 
                 log.info("Streaming file {}: {}", fileCounter, stream.getUrl().toString());
