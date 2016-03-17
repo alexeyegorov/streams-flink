@@ -1,6 +1,6 @@
 package flink.functions;
 
-import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -20,7 +20,7 @@ import stream.util.Variables;
  *
  * @author alexey
  */
-public class FlinkSource extends StreamsFlinkObject implements ParallelSourceFunction<Data> {
+public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Data> {
 
     static Logger log = LoggerFactory.getLogger(FlinkSource.class);
 
