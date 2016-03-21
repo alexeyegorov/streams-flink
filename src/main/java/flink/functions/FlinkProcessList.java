@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -116,7 +117,9 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
 
     @Override
     protected void init() throws Exception {
-        String id = element.getAttribute("id") + "-node-" + THREAD_NUMBER++;
+        // add process identifier using localhost name and some random unique identifier
+        String id = element.getAttribute("id") + "@"
+                + InetAddress.getLocalHost().getCanonicalHostName() + "-" + UUID.randomUUID();
         element.setAttribute("id", id);
         context.set("process", id);
         process = createProcess();
