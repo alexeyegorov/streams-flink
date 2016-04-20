@@ -67,7 +67,7 @@ if ${run}; then
     # start the deployment
     java -jar \
         -Dnimbus.host=${nimbus} \
-        -Dstorm.jar=target/streams-flink-0.9.24-SNAPSHOT-flink-provided.jar \
-        target/streams-flink-0.9.24-SNAPSHOT-flink-compiled.jar \
+        -Dstorm.jar=target/streams-flink-0.9.25-SNAPSHOT-flink-provided.jar \
+        target/streams-flink-0.9.25-SNAPSHOT-flink-compiled.jar \
         ${process_path}
 fi
