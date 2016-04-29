@@ -65,10 +65,10 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
                     boolean accessible = field.isAccessible();
                     field.setAccessible(true);
 
-                    FlinkService stormService = getFlinkService(serviceName);
-                    if (stormService != null) {
-                        log.debug("Injecting   '{}'.{}   <-- " + stormService, p, serviceName);
-                        field.set(p, stormService.getService());
+                    FlinkService flinkService = getFlinkService(serviceName);
+                    if (flinkService != null) {
+                        log.debug("Injecting   '{}'.{}   <-- " + flinkService, p, serviceName);
+                        field.set(p, flinkService.getService());
                     } else {
                         log.error("StormService with name {} were not found.", serviceName);
                     }
