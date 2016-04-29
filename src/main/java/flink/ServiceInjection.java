@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,10 +34,6 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
 
     @Override
     public void processorCreated(Processor p, Element from) throws Exception {
-        // save name of all properties to be set for possibly several services
-        // names can be field names or service names set through XML configuration
-        List<String> props = new ArrayList<>(0);
-
         // collect all declared field (even from superclasses)
         List<Field> fields = getDeclaredFields(p);
 
@@ -56,7 +51,6 @@ public class ServiceInjection implements ProcessorFactory.ProcessorCreationHandl
                 if (sa != null && !sa.name().isEmpty()) {
                     serviceName = sa.name();
                 }
-                props.add(serviceName);
 
                 log.info("Service field '{}' relates to property '{}' for processor {}",
                         field.getName(), serviceName, p);
