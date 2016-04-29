@@ -65,14 +65,14 @@ public class QueueInjection implements ProcessorCreationHandler {
      * @see ProcessorCreationHandler#processorCreated(stream.Processor, Element)
      */
     @Override
-    public void processorCreated(Processor p, Element from) throws Exception {
+    public void processorCreated(Processor processor, Element from) throws Exception {
         Map<String, String> params = ObjectFactory.newInstance().getAttributes(from);
 
         // iterate through all methods to find setter methods for (sub)class of Sink
-        for (Method m : p.getClass().getMethods()) {
-            log.trace("Checking method {}", m);
-            if (DependencyInjection.isSetter(m, Sink.class)) {
-                final String qsn = getQueueSetterName(m);
+        for (Method method : processor.getClass().getMethods()) {
+            log.trace("Checking method {}", method);
+            if (DependencyInjection.isSetter(method, Sink.class)) {
+                final String qsn = getQueueSetterName(method);
 
                 //TODO: is it necessary or would simply qsn.toLowerCase() would do the same?
                 String prop = qsn.substring(0, 1).toLowerCase() + qsn.substring(1);
@@ -86,7 +86,7 @@ public class QueueInjection implements ProcessorCreationHandler {
                 log.debug("Found queue-setter for property {} (property value: '{}')",
                         prop, params.get(prop));
 
-                if (DependencyInjection.isArraySetter(m, Sink.class)) {
+                if (DependencyInjection.isArraySetter(method, Sink.class)) {
                     // setter using array of comma separated queue names
                     String[] names = params.get(prop).split(",");
 
@@ -104,21 +104,21 @@ public class QueueInjection implements ProcessorCreationHandler {
                     }
                     log.debug("Injecting array of queues...");
                     Object array = wrapper.toArray(new FlinkQueue[wrapper.size()]);
-                    m.invoke(p, array);
+                    method.invoke(processor, array);
 
                 } else {
                     // setter using queue name
                     String name = params.get(prop);
-                    log.debug("Injecting a single queue... using method {}", m);
+                    log.debug("Injecting a single queue... using method {}", method);
                     FlinkQueue flinkQueue = getFlinkQueue(name);
                     if (flinkQueue != null) {
-                        m.invoke(p, flinkQueue);
+                        method.invoke(processor, flinkQueue);
                     } else {
                         log.debug("Queue '{}' was not found in the list of defined queues", name);
                     }
                 }
             } else {
-                log.debug("Skipping method {} => not a queue-setter", m);
+                log.debug("Skipping method {} => not a queue-setter", method);
             }
         }
     }
