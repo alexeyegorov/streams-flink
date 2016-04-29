@@ -36,13 +36,6 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
 
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
 
-
-    //TODO: how does this work in a real cluster?!
-    /**
-     * Number of workers to be used for performance measuring of each worker
-     */
-    static int THREAD_NUMBER;
-
     /**
      * List of queues
      */
