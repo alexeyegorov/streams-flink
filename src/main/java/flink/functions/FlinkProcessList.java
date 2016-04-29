@@ -37,12 +37,12 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
 
     /**
-     * List of queues
+     * List of queues to which some data items can be enqueued.
      */
     private List<FlinkQueue> flinkQueues;
 
     /**
-     * List of services
+     * List of services that can be used by processors inside this list.
      */
     private List<FlinkService> flinkServices;
 
