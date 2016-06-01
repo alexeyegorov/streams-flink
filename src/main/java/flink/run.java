@@ -23,7 +23,8 @@
  */
 package flink;
 
-import org.apache.flink.storm.api.FlinkTopology;
+import org.apache.storm.Config;
+import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -33,8 +34,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
-import backtype.storm.Config;
-import backtype.storm.topology.TopologyBuilder;
 import stream.DocumentEncoder;
 import stream.StreamTopology;
 import stream.StreamTopologyBuilder;

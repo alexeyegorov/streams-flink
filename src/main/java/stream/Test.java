@@ -23,8 +23,8 @@
  */
 package stream;
 
-import org.apache.flink.storm.api.FlinkSubmitter;
-import org.apache.flink.storm.api.FlinkTopology;
+import org.apache.storm.Config;
+import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import backtype.storm.Config;
-import backtype.storm.topology.TopologyBuilder;
 import stream.io.SourceURL;
 import stream.util.XMLUtils;
 

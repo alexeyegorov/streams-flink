@@ -23,6 +23,9 @@
  */
 package stream;
 
+import org.apache.storm.topology.BoltDeclarer;
+import org.apache.storm.topology.SpoutDeclarer;
+import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -39,9 +42,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import backtype.storm.topology.BoltDeclarer;
-import backtype.storm.topology.SpoutDeclarer;
-import backtype.storm.topology.TopologyBuilder;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;

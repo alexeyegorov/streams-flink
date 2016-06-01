@@ -2,6 +2,8 @@ package stream;
 
 import org.apache.flink.storm.api.FlinkLocalCluster;
 import org.apache.flink.storm.api.FlinkTopology;
+import org.apache.storm.Config;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +11,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import backtype.storm.Config;
-import backtype.storm.utils.Utils;
 
 public class StreamTopologyBuilder {
     private static FlinkLocalCluster flinkCluster;
