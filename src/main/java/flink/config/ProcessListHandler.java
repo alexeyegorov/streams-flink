@@ -7,7 +7,7 @@ import org.w3c.dom.Element;
 import flink.functions.FlinkProcessList;
 import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
-import stream.storm.Constants;
+import stream.Constants;
 
 /**
  * Configuration handler for list of processors. Method handle(...) creates FlatMapFunction to

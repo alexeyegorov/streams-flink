@@ -11,7 +11,7 @@ import flink.functions.FlinkSource;
 import stream.Data;
 import stream.FlinkStreamTopology;
 import stream.runtime.setup.factory.ObjectFactory;
-import stream.storm.Constants;
+import stream.Constants;
 
 /**
  * Configuration handler for streams sources. Method handle(...) creates SourceFunction to produce

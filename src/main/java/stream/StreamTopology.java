@@ -45,7 +45,6 @@ import backtype.storm.topology.TopologyBuilder;
 import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.handler.PropertiesHandler;
-import stream.storm.Constants;
 import stream.storm.config.BoltHandler;
 import stream.storm.config.ConfigHandler;
 import stream.storm.config.ProcessHandler;

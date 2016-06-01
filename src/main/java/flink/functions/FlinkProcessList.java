@@ -23,7 +23,7 @@ import stream.ProcessorList;
 import stream.StatefulProcessor;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.ProcessorFactory;
-import stream.storm.Constants;
+import stream.Constants;
 import stream.util.Variables;
 
 /**

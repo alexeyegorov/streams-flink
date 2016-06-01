@@ -30,7 +30,6 @@ import flink.functions.FlinkProcessList;
 import flink.functions.FlinkQueue;
 import flink.functions.FlinkService;
 import stream.runtime.setup.factory.ObjectFactory;
-import stream.storm.Constants;
 import stream.util.Variables;
 import stream.util.XIncluder;
 
@@ -330,8 +329,8 @@ public class FlinkStreamTopology {
             public Iterable<String> select(Data data) {
                 List<String> queues = new ArrayList<>(allQueues.size());
                 try {
-                    if (data.containsKey("flink.queue")) {
-                        String outputQueue = (String) data.get("flink.queue");
+                    if (data.containsKey(Constants.FLINK_QUEUE)) {
+                        String outputQueue = (String) data.get(Constants.FLINK_QUEUE);
                         log.debug("flink.queue {}", outputQueue);
                         for (String queue : allQueues) {
                             if (queue.equals(outputQueue)) {
