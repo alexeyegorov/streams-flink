@@ -35,6 +35,7 @@ import stream.util.XIncluder;
 
 /**
  * Topology builder similar to streams-storm builder.
+ *
  * @author alexey
  */
 public class FlinkStreamTopology {
@@ -117,6 +118,7 @@ public class FlinkStreamTopology {
         // set level of parallelism for the job
         env.setParallelism(getParallelism(doc.getDocumentElement()));
         // execute flink job if we were able to init all the functions
+//        System.out.println(env.getExecutionPlan());
         env.execute(getVariables().get(Constants.APPLICATION_ID));
     }
 
@@ -160,18 +162,18 @@ public class FlinkStreamTopology {
         for (int i = 0; i < length; i++) {
             Node node = list.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE) {
-                final Element el = (Element) node;
+                final Element element = (Element) node;
 
-                if (handler.handles(el)) {
+                if (handler.handles(element)) {
                     log.info("--------------------------------------------------------------------------------");
                     log.info("Handling element '{}'", node.getNodeName());
                     try {
-                        handler.handle(el, this);
+                        handler.handle(element, this);
                     } catch (Exception e) {
-                        log.error("Handler {} could not handle element {}.", handler, el);
+                        log.error("Handler {} could not handle element {}.", handler, element);
                         return false;
                     }
-                    String input = el.getAttribute("input");
+                    String input = element.getAttribute("input");
                     log.info("--------------------------------------------------------------------------------");
                     if (ProcessListHandler.class.isInstance(handler)) {
                         // apply processors
@@ -186,7 +188,8 @@ public class FlinkStreamTopology {
 
                         DataStream<Data> dataStream = sources.get(input)
                                 .flatMap(function)
-                                .setParallelism(getParallelism(el));
+                                .setParallelism(getParallelism(element))
+                                .name(element.getAttribute("id"));
 
                         // detect output queues
                         List<String> outputQueues = function.getListOfOutputQueues();
@@ -215,9 +218,9 @@ public class FlinkStreamTopology {
         if (element.hasAttribute(Constants.NUM_WORKERS)) {
             try {
                 return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
-            }catch(NumberFormatException ex){
+            } catch (NumberFormatException ex) {
                 log.error("Unable to parse defined level of parallelism: {}\n" +
-                        "Returning default parallelism level: {}",
+                                "Returning default parallelism level: {}",
                         element.getAttribute(Constants.NUM_WORKERS), Constants.DEFAULT_PARALLELISM);
             }
         }
