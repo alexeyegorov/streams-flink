@@ -21,6 +21,5 @@ Hence, e.g. if we have two machines with 6 cores each (task slots) and have two 
 The easiest way to start a Flink job is to use the submit script by Flink itself:
 
 ```
-./bin/flink run --jobmanager jobmanager-adress:6123 -p <parallelism-level> <jar-file> <further-arguements>
+./bin/flink run --jobmanager jobmanager-adress:6123 -p <parallelism-level> <jar-file> <further-arguments>
 ```
-
