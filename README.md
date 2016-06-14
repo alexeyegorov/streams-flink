@@ -6,7 +6,12 @@ The XML definition of ``streams`` process has not been changed.
 We can still use ``copies`` attribute in ``<process ...>`` tag in order to controll the level of parallelism.
 Each copy is then mapped to a task slot inside of the Flink cluster.
 We have support for ``services`` and ``queues``. 
-Each ``process`` is translated to a flatMap function with parallelism and name set over ``copies`` and ``id``:
+Each ``process``, e.g. as the following
+```
+<process input="data" id="extraction" copies="1">
+```
+
+is translated to a flatMap function with parallelism and name set over ``copies`` and ``id``:
 
 ```
 DataStream<Data> dataStream = source
