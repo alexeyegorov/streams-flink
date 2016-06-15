@@ -102,14 +102,14 @@ public class QueueInjection implements ProcessorCreationHandler {
                             }
                         }
                     }
-                    log.debug("Injecting array of queues...");
+                    log.info("Injecting array of queues...");
                     Object array = wrapper.toArray(new FlinkQueue[wrapper.size()]);
                     method.invoke(processor, array);
 
                 } else {
                     // setter using queue name
                     String name = params.get(prop);
-                    log.debug("Injecting a single queue... using method {}", method);
+                    log.info("Injecting a single queue... using method {}", method);
                     FlinkQueue flinkQueue = getFlinkQueue(name);
                     if (flinkQueue != null) {
                         method.invoke(processor, flinkQueue);
