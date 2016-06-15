@@ -83,7 +83,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         List<String> listOfOutputQueues = getListOfOutputQueues();
         flinkQueues = new ArrayList<>(0);
         for (FlinkQueue queue : streamTopology.flinkQueues) {
-            if (listOfOutputQueues.contains(queue.getQueueName().toLowerCase())) {
+            if (listOfOutputQueues.contains(queue.getQueueName())) {
                 flinkQueues.add(queue);
             }
         }
