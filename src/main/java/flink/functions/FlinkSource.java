@@ -1,18 +1,14 @@
 package flink.functions;
 
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import java.io.IOException;
-import java.util.Map;
 
 import stream.Data;
-import stream.io.AbstractStream;
+import stream.DistributedStream;
 import stream.io.Stream;
-import stream.io.multi.AbstractMultiStream;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.StreamFactory;
 import stream.util.Variables;
@@ -22,7 +18,7 @@ import stream.util.Variables;
  *
  * @author alexey
  */
-public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Data> {
+public class FlinkSource extends StreamsFlinkSourceObject {
 
     static Logger log = LoggerFactory.getLogger(FlinkSource.class);
 
@@ -67,6 +63,28 @@ public class FlinkSource extends StreamsFlinkObject implements SourceFunction<Da
 
     @Override
     public void run(SourceContext<Data> ctx) throws Exception {
+        // if this is a distributed stream, then handle the parallelism level
+        if (DistributedStream.class.isInstance(streamProcessor)) {
+            DistributedStream parallelMultiStream = (DistributedStream) streamProcessor;
+            try {
+                Class<?> aClass = parallelMultiStream.getClass();
+                aClass.getMethod("handleParallelism", int.class, int.class);
+
+                // retrieve number of tasks and number of this certain task from the context
+                int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+                int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
+
+                // call the method to handle the parallelism level and then re-initialize the stream
+                parallelMultiStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
+                streamProcessor = parallelMultiStream;
+                streamProcessor.init();
+                log.info("Perform streaming in parallel mode ({}/{}).",
+                        indexOfThisSubtask + 1, numberOfParallelSubtasks);
+            } catch (NoSuchMethodException exc) {
+                log.info("Stream is not prepared to be handled in parallel.");
+            }
+        }
+
         if (streamProcessor == null) {
             log.debug("Stream processor has not been initialized properly.");
             return;
