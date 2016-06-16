@@ -6,7 +6,7 @@
     <groupId>de.sfb876</groupId>
     <name>streams-flink</name>
     <artifactId>${artifactid}</artifactId>
-    <version>0.9.25-SNAPSHOT</version>
+    <version>0.9.26-SNAPSHOT</version>
 
 
     <properties>
@@ -14,7 +14,7 @@
         <flink.scope>provided</flink.scope>
         <flink.mainclass>flink.deploy</flink.mainclass>
         <skipTests>true</skipTests>
-        <streams.version>0.9.25-SNAPSHOT</streams.version>
+        <streams.version>0.9.26-SNAPSHOT</streams.version>
         <artifactid>streams-flink</artifactid>
         <flink.version>(1.0.0,]</flink.version>
     </properties>
@@ -223,16 +223,33 @@
             <groupId>de.sfb876</groupId>
             <artifactId>streams-hdfs</artifactId>
             <version>0.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jwall</groupId>
+                    <artifactId>streams-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-api</artifactId>
+            <version>${streams.version}</version>
         </dependency>
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-performance</artifactId>
-            <version>0.9.25-SNAPSHOT</version>
+            <version>${streams.version}</version>
         </dependency>
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-storm</artifactId>
-            <version>0.9.25-SNAPSHOT</version>
+            <version>${streams.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.sfb876</groupId>
+            <artifactId>streams-spark</artifactId>
+            <version>${streams.version}</version>
         </dependency>
 
         <dependency>
