@@ -1,5 +1,7 @@
 package flink.functions;
 
+import flink.QueueInjection;
+import flink.ServiceInjection;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
@@ -7,24 +9,15 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import stream.*;
+import stream.runtime.setup.factory.ObjectFactory;
+import stream.runtime.setup.factory.ProcessorFactory;
+import stream.util.Variables;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import flink.QueueInjection;
-import flink.ServiceInjection;
-import stream.Data;
-import stream.FlinkStreamTopology;
-import stream.ProcessContext;
-import stream.Processor;
-import stream.ProcessorList;
-import stream.StatefulProcessor;
-import stream.runtime.setup.factory.ObjectFactory;
-import stream.runtime.setup.factory.ProcessorFactory;
-import stream.Constants;
-import stream.util.Variables;
 
 /**
  * Own implementation of FlatMapFunction for a list of processors (<process>...</process>). FlatMap
@@ -34,7 +27,7 @@ import stream.util.Variables;
  */
 public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunction<Data, Data> {
 
-    static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
+    private static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
 
     /**
      * List of queues to which some data items can be enqueued.
@@ -54,7 +47,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     /**
      * Variables with environment information
      */
-    protected Variables variables;
+    private Variables variables;
 
     /**
      * Document element containing information about list of processors.
@@ -64,7 +57,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     /**
      * Process context is used for initialization and is realized here by using FlinkContext.
      */
-    protected ProcessContext context;
+    private ProcessContext context;
 
     public FlinkProcessList(FlinkStreamTopology streamTopology, Element el) {
         this.variables = streamTopology.getVariables();
@@ -121,6 +114,18 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
                 ((StatefulProcessor) p).init(context);
             }
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    process.finish();
+                    log.info("Processor has been finished.");
+                } catch (Exception e) {
+                    log.error("Processor could not have been finished: {}", e.getMessage());
+                }
+            }
+        }));
         log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
     }
 
@@ -129,7 +134,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
      *
      * @return list of processors inside a function
      */
-    protected ProcessorList createProcess() throws Exception {
+    private ProcessorList createProcess() throws Exception {
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);
         ProcessorFactory pf = new ProcessorFactory(obf);
