@@ -1,5 +1,12 @@
 package stream;
 
+import flink.config.ProcessListHandler;
+import flink.config.QueueHandler;
+import flink.config.ServiceHandler;
+import flink.config.SourceHandler;
+import flink.functions.FlinkProcessList;
+import flink.functions.FlinkQueue;
+import flink.functions.FlinkService;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
@@ -10,28 +17,19 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import stream.runtime.setup.factory.ObjectFactory;
+import stream.util.Variables;
+import stream.util.XIncluder;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import flink.config.ProcessListHandler;
-import flink.config.QueueHandler;
-import flink.config.ServiceHandler;
-import flink.config.SourceHandler;
-import flink.functions.FlinkProcessList;
-import flink.functions.FlinkQueue;
-import flink.functions.FlinkService;
-import stream.runtime.setup.factory.ObjectFactory;
-import stream.util.Variables;
-import stream.util.XIncluder;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Topology builder similar to streams-storm builder.
@@ -40,7 +38,7 @@ import stream.util.XIncluder;
  */
 public class FlinkStreamTopology {
 
-    static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
+    private static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
 
     public final Variables variables = new Variables();
     private Document doc;
@@ -156,8 +154,7 @@ public class FlinkStreamTopology {
         // create processor list handler
         ProcessListHandler handler = new ProcessListHandler(ObjectFactory.newInstance());
 
-        //TODO use getElementsByTagName?
-        NodeList list = doc.getDocumentElement().getChildNodes();
+        NodeList list = doc.getDocumentElement().getElementsByTagName("process");
         int length = list.getLength();
         for (int i = 0; i < length; i++) {
             Node node = list.item(i);
