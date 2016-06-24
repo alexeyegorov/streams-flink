@@ -11,12 +11,7 @@ import stream.Data;
  *
  * @author alexey
  */
-public abstract class StreamsFlinkSourceObject extends RichParallelSourceFunction<Data> {
-
-    /**
-     * Init method has to be implemented in order to provide right behaviour after deserialization.
-     */
-    protected abstract void init() throws Exception;
+abstract class StreamsFlinkSourceObject extends RichParallelSourceFunction<Data> implements StreamsFlinkObjectInterface {
 
     /**
      * readResolve() is called every time an object has been deserialized. Inside of it init()

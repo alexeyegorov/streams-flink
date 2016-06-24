@@ -3,15 +3,14 @@ package flink.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-
-import java.io.IOException;
-
 import stream.Data;
 import stream.DistributedStream;
 import stream.io.Stream;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.StreamFactory;
 import stream.util.Variables;
+
+import java.io.IOException;
 
 /**
  * Own source implementation to embed stream processor from 'streams framework'
@@ -20,12 +19,12 @@ import stream.util.Variables;
  */
 public class FlinkSource extends StreamsFlinkSourceObject {
 
-    static Logger log = LoggerFactory.getLogger(FlinkSource.class);
+    private static Logger log = LoggerFactory.getLogger(FlinkSource.class);
 
     /**
      * Stream processor embedded inside of SourceFunction
      */
-    protected Stream streamProcessor;
+    private Stream streamProcessor;
 
     /**
      * Flag to stop retrieving elements from the source.
@@ -35,7 +34,7 @@ public class FlinkSource extends StreamsFlinkSourceObject {
     /**
      * Variables with environment information
      */
-    protected Variables variables;
+    private Variables variables;
 
     /**
      * Element object containing part of XML file with configuration for the source.
@@ -56,7 +55,7 @@ public class FlinkSource extends StreamsFlinkSourceObject {
     /**
      * init() is called inside of super class' readResolve() method.
      */
-    protected void init() throws Exception {
+    public void init() throws Exception {
         streamProcessor = StreamFactory.createStream(ObjectFactory.newInstance(), el, variables);
         streamProcessor.init();
     }

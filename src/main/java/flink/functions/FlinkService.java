@@ -4,12 +4,11 @@ import org.apache.flink.api.common.functions.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-
-import java.util.Map;
-
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.service.Service;
 import stream.util.Variables;
+
+import java.util.Map;
 
 /**
  * FlinkService is used as a wrapper for a service class. While building up flink topology, all
@@ -47,7 +46,7 @@ public class FlinkService extends StreamsFlinkObject implements Function {
     }
 
     @Override
-    protected void init() throws Exception {
+    public void init() throws Exception {
         log.debug("Creating new service implementation from class {}", element.getAttribute("class"));
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);

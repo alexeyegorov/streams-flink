@@ -7,12 +7,7 @@ package flink.functions;
  *
  * @author alexey
  */
-public abstract class StreamsFlinkObject {
-
-    /**
-     * Init method has to be implemented in order to provide right behaviour after deserialization.
-     */
-    protected abstract void init() throws Exception;
+abstract class StreamsFlinkObject implements StreamsFlinkObjectInterface {
 
     /**
      * readResolve() is called every time an object has been deserialized. Inside of it init()
