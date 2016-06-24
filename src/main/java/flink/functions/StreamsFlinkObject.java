@@ -1,9 +1,9 @@
 package flink.functions;
 
 /**
- * Abstract class with an implemented readResolve() and abstract init() methods. This is needed
- * as Flink serializes everything before sending the packaged to the  in order to support
- * serialization inside of Flink.
+ * Abstract class with an implemented readResolve() and abstract init() methods. This is needed as
+ * Flink serializes everything before sending the packaged to the  in order to support serialization
+ * inside of Flink.
  *
  * @author alexey
  */

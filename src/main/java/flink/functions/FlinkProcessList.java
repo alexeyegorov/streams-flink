@@ -1,7 +1,5 @@
 package flink.functions;
 
-import flink.QueueInjection;
-import flink.ServiceInjection;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
@@ -9,15 +7,24 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import stream.*;
-import stream.runtime.setup.factory.ObjectFactory;
-import stream.runtime.setup.factory.ProcessorFactory;
-import stream.util.Variables;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import flink.QueueInjection;
+import flink.ServiceInjection;
+import stream.Constants;
+import stream.Data;
+import stream.FlinkStreamTopology;
+import stream.ProcessContext;
+import stream.Processor;
+import stream.ProcessorList;
+import stream.StatefulProcessor;
+import stream.runtime.setup.factory.ObjectFactory;
+import stream.runtime.setup.factory.ProcessorFactory;
+import stream.util.Variables;
 
 /**
  * Own implementation of FlatMapFunction for a list of processors (<process>...</process>). FlatMap

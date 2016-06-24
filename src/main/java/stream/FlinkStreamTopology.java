@@ -1,12 +1,5 @@
 package stream;
 
-import flink.config.ProcessListHandler;
-import flink.config.QueueHandler;
-import flink.config.ServiceHandler;
-import flink.config.SourceHandler;
-import flink.functions.FlinkProcessList;
-import flink.functions.FlinkQueue;
-import flink.functions.FlinkService;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
@@ -17,19 +10,28 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import stream.runtime.setup.factory.ObjectFactory;
-import stream.util.Variables;
-import stream.util.XIncluder;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import flink.config.ProcessListHandler;
+import flink.config.QueueHandler;
+import flink.config.ServiceHandler;
+import flink.config.SourceHandler;
+import flink.functions.FlinkProcessList;
+import flink.functions.FlinkQueue;
+import flink.functions.FlinkService;
+import stream.runtime.setup.factory.ObjectFactory;
+import stream.util.Variables;
+import stream.util.XIncluder;
 
 /**
  * Topology builder similar to streams-storm builder.

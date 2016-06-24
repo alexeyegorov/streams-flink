@@ -3,14 +3,15 @@ package flink.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
+
+import java.io.IOException;
+
 import stream.Data;
 import stream.DistributedStream;
 import stream.io.Stream;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.StreamFactory;
 import stream.util.Variables;
-
-import java.io.IOException;
 
 /**
  * Own source implementation to embed stream processor from 'streams framework'

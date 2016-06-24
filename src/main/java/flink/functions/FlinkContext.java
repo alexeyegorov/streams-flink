@@ -15,7 +15,9 @@ import stream.ProcessContext;
  * @author chris, alexey
  */
 public class FlinkContext implements ProcessContext, Serializable {
-    /** The unique class ID */
+    /**
+     * The unique class ID
+     */
     private static final long serialVersionUID = 6162013508460469957L;
     static Logger log = LoggerFactory.getLogger(FlinkContext.class);
 
@@ -28,7 +30,7 @@ public class FlinkContext implements ProcessContext, Serializable {
      * @param id UUID of a process
      */
     public FlinkContext(String id) {
-        set("process", (!id.equals(""))? id : UUID.randomUUID().toString());
+        set("process", (!id.equals("")) ? id : UUID.randomUUID().toString());
     }
 
     /**

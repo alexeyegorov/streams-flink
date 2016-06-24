@@ -3,12 +3,13 @@ package flink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import stream.DocumentEncoder;
-import stream.FlinkStreamTopology;
-import stream.util.XMLUtils;
 
 import java.io.File;
 import java.net.URL;
+
+import stream.DocumentEncoder;
+import stream.FlinkStreamTopology;
+import stream.util.XMLUtils;
 
 /**
  * Build and run Flink topology locally or deploy jar with this class as mainclass to your cluster.

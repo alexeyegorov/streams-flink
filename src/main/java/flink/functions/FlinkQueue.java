@@ -64,7 +64,7 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);
         String className;
-        if (!element.hasAttribute("class")){
+        if (!element.hasAttribute("class")) {
             className = "stream.io.BlockingQueue";
         } else {
             className = element.getAttribute("class");
