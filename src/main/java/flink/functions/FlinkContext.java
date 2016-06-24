@@ -14,15 +14,15 @@ import stream.ProcessContext;
 /**
  * @author chris, alexey
  */
-public class FlinkContext implements ProcessContext, Serializable {
+class FlinkContext implements ProcessContext, Serializable {
     /**
      * The unique class ID
      */
     private static final long serialVersionUID = 6162013508460469957L;
-    static Logger log = LoggerFactory.getLogger(FlinkContext.class);
+    private static Logger log = LoggerFactory.getLogger(FlinkContext.class);
 
-    final Map<String, Serializable> values = new LinkedHashMap<>();
-    transient Map<String, Object> volatileValues = new LinkedHashMap<>();
+    private final Map<String, Serializable> values = new LinkedHashMap<>();
+    private transient Map<String, Object> volatileValues = new LinkedHashMap<>();
 
     /**
      * Create bolt context using given id. Application ID can be set using 'set(...)' method.
