@@ -184,8 +184,14 @@ public class FlinkStreamTopology {
                         }
 
                         DataStream<Data> dataStream = sources.get(input)
+                                // each data stream without any following queue can do a rescale
+                                // meaning that previous exec. plan will be rescaled
+                                .rescale()
+                                // apply the processors
                                 .flatMap(function)
+                                // set the level of parallelism
                                 .setParallelism(getParallelism(element))
+                                // define the name for this process
                                 .name(element.getAttribute("id"));
 
                         // detect output queues
