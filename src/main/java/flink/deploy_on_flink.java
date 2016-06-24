@@ -1,16 +1,14 @@
 package flink;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-
-import java.io.File;
-import java.net.URL;
-
 import stream.DocumentEncoder;
 import stream.FlinkStreamTopology;
 import stream.util.XMLUtils;
+
+import java.io.File;
+import java.net.URL;
 
 /**
  * Build and run Flink topology locally or deploy jar with this class as mainclass to your cluster.
@@ -56,10 +54,6 @@ public class deploy_on_flink {
         log.info("Decoded XML is: {}", XMLUtils.toString(decxml));
 
         FlinkStreamTopology flinkStreamTopology = new FlinkStreamTopology(doc);
-        flinkStreamTopology.env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        flinkStreamTopology.env = StreamExecutionEnvironment.createRemoteEnvironment(
-//                "kirsche.cs.uni-dortmund.de", 6123, 1,
-//                "target/streams-flink-0.9.25-SNAPSHOT-flink-compiled.jar");
 
         if (flinkStreamTopology.createTopology()) {
             flinkStreamTopology.executeTopology();

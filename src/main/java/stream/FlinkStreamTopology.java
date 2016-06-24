@@ -56,10 +56,11 @@ public class FlinkStreamTopology {
     /**
      * Stream execution environment created to execute Flink topology.
      */
-    public StreamExecutionEnvironment env;
+    private StreamExecutionEnvironment env;
 
     public FlinkStreamTopology(Document doc) {
         this.doc = doc;
+        this.env = StreamExecutionEnvironment.getExecutionEnvironment();
     }
 
     public Variables getVariables() {
