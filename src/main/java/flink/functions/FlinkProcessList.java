@@ -115,6 +115,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
             }
         }
 
+        // add shutdown hook in order to finish the processors
+        // this is important for statefull processors such as streams.performance
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
