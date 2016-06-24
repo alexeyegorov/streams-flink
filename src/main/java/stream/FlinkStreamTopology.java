@@ -264,7 +264,6 @@ public class FlinkStreamTopology {
         ObjectFactory of = ObjectFactory.newInstance();
         HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
         SourceHandler sourceHandler = new SourceHandler(of);
-        //TODO use something more simple?!
         for (int is = 0; is < streamList.getLength(); is++) {
             Element item = (Element) streamList.item(is);
             if (sourceHandler.handles(item)) {
@@ -280,8 +279,8 @@ public class FlinkStreamTopology {
                 }
                 DataStream<Data> source = env
                         .addSource(sourceHandler.getFunction(), id)
-                        .setParallelism(getParallelism(item));
-//                        .disableChaining();
+                        .setParallelism(getParallelism(item))
+                        .name(id);
 
                 // put this source into the hashmap
                 sources.put(id, source);
