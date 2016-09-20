@@ -122,15 +122,12 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
             }
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    process.finish();
-                    log.info("Processor has been finished.");
-                } catch (Exception e) {
-                    log.error("Processor could not have been finished: {}", e.getMessage());
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                process.finish();
+                log.info("Processor has been finished.");
+            } catch (Exception e) {
+                log.error("Processor could not have been finished: {}", e.getMessage());
             }
         }));
         log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
