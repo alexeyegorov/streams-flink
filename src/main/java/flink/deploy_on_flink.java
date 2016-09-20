@@ -1,6 +1,5 @@
 package flink;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -56,10 +55,6 @@ public class deploy_on_flink {
         log.info("Decoded XML is: {}", XMLUtils.toString(decxml));
 
         FlinkStreamTopology flinkStreamTopology = new FlinkStreamTopology(doc);
-        flinkStreamTopology.env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        flinkStreamTopology.env = StreamExecutionEnvironment.createRemoteEnvironment(
-//                "kirsche.cs.uni-dortmund.de", 6123, 1,
-//                "target/streams-flink-0.9.25-SNAPSHOT-flink-compiled.jar");
 
         if (flinkStreamTopology.createTopology()) {
             flinkStreamTopology.executeTopology();

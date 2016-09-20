@@ -40,7 +40,7 @@ import stream.util.XIncluder;
  */
 public class FlinkStreamTopology {
 
-    static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
+    private static Logger log = LoggerFactory.getLogger(FlinkStreamTopology.class);
 
     public final Variables variables = new Variables();
     private Document doc;
@@ -58,10 +58,11 @@ public class FlinkStreamTopology {
     /**
      * Stream execution environment created to execute Flink topology.
      */
-    public StreamExecutionEnvironment env;
+    private StreamExecutionEnvironment env;
 
     public FlinkStreamTopology(Document doc) {
         this.doc = doc;
+        this.env = StreamExecutionEnvironment.getExecutionEnvironment();
     }
 
     public Variables getVariables() {
@@ -141,6 +142,49 @@ public class FlinkStreamTopology {
     }
 
     /**
+     * Find all sources (streams) and wrap them in FlinkSources.
+     *
+     * @param doc XML document
+     */
+    private HashMap<String, DataStream<Data>> initFlinkSources(Document doc) {
+        NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
+        if (streamList.getLength() < 1) {
+            log.debug("At least 1 stream source has to be defined.");
+            return null;
+        }
+
+        ObjectFactory of = ObjectFactory.newInstance();
+        HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
+        SourceHandler sourceHandler = new SourceHandler(of);
+        for (int is = 0; is < streamList.getLength(); is++) {
+            Element item = (Element) streamList.item(is);
+            if (sourceHandler.handles(item)) {
+                // name of the source
+                String id = item.getAttribute("id");
+
+                // handle the source and create data stream for it
+                try {
+                    sourceHandler.handle(item, this);
+                } catch (Exception e) {
+                    log.error("Error while handling the source for item {}", item);
+                    return null;
+                }
+                DataStream<Data> source = env
+                        .addSource(sourceHandler.getFunction(), id)
+                        .setParallelism(getParallelism(item))
+                        .name(id);
+
+                // put this source into the hashmap
+                sources.put(id, source);
+                log.info("'{}' added as stream source.", id);
+            } else {
+                log.debug("Source handler doesn't handle {}", item.toString());
+            }
+        }
+        return sources;
+    }
+
+    /**
      * Find ProcessorLists and handle them to become FlatMap functions.
      *
      * @param doc     XML document
@@ -156,8 +200,7 @@ public class FlinkStreamTopology {
         // create processor list handler
         ProcessListHandler handler = new ProcessListHandler(ObjectFactory.newInstance());
 
-        //TODO use getElementsByTagName?
-        NodeList list = doc.getDocumentElement().getChildNodes();
+        NodeList list = doc.getDocumentElement().getElementsByTagName("process");
         int length = list.getLength();
         for (int i = 0; i < length; i++) {
             Node node = list.item(i);
@@ -186,7 +229,6 @@ public class FlinkStreamTopology {
                             continue;
                         }
 
-
                         DataStream<Data> dataStream = sources.get(input)
                                 // each data stream without any following queue can do a rescale
                                 // meaning that previous exec. plan will be rescaled
@@ -214,94 +256,6 @@ public class FlinkStreamTopology {
             }
         }
         return anyFunctionFound;
-    }
-
-    /**
-     * Inspect attributes of the given element whether they contain special attribute to define
-     * level of parallelism. If nothing defined, return 1.
-     *
-     * @param element part of xml
-     * @return level of parallelism defined in xml if attribute found; otherwise: 1
-     */
-    private static int getParallelism(Element element) {
-        if (element.hasAttribute(Constants.NUM_WORKERS)) {
-            try {
-                return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
-            } catch (NumberFormatException ex) {
-                log.error("Unable to parse defined level of parallelism: {}\n" +
-                                "Returning default parallelism level: {}",
-                        element.getAttribute(Constants.NUM_WORKERS), Constants.DEFAULT_PARALLELISM);
-            }
-        }
-        return Constants.DEFAULT_PARALLELISM;
-    }
-
-    /**
-     * Search for application id in application and container tags. Otherwise produce random UUID.
-     *
-     * @param doc XML document
-     * @return application id extracted from the ID attribute or random UUID if no ID attribute
-     * present
-     */
-    private static String getAppId(Document doc) {
-        String appId = "application:" + UUID.randomUUID().toString();
-
-        // try to find application or container tags
-        NodeList nodeList = doc.getElementsByTagName("application");
-        if (nodeList.getLength() < 1) {
-            nodeList = doc.getElementsByTagName("container");
-        }
-
-        // do there exist more than one application or container tags?
-        if (nodeList.getLength() > 1) {
-            log.error("More than 1 application node.");
-        } else {
-            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
-        }
-        return appId;
-    }
-
-    /**
-     * Find all sources (streams) and wrap them in FlinkSources.
-     *
-     * @param doc XML document
-     */
-    private HashMap<String, DataStream<Data>> initFlinkSources(Document doc) {
-        NodeList streamList = doc.getDocumentElement().getElementsByTagName("stream");
-        if (streamList.getLength() < 1) {
-            log.debug("At least 1 stream source has to be defined.");
-            return null;
-        }
-
-        ObjectFactory of = ObjectFactory.newInstance();
-        HashMap<String, DataStream<Data>> sources = new HashMap<>(streamList.getLength());
-        SourceHandler sourceHandler = new SourceHandler(of);
-        //TODO use something more simple?!
-        for (int is = 0; is < streamList.getLength(); is++) {
-            Element item = (Element) streamList.item(is);
-            if (sourceHandler.handles(item)) {
-                // name of the source
-                String id = item.getAttribute("id");
-
-                // handle the source and create data stream for it
-                try {
-                    sourceHandler.handle(item, this);
-                } catch (Exception e) {
-                    log.error("Error while handling the source for item {}", item);
-                    return null;
-                }
-                DataStream<Data> source = env
-                        .addSource(sourceHandler.getFunction(), id)
-                        .setParallelism(getParallelism(item));
-
-                // put this source into the hashmap
-                sources.put(id, source);
-                log.info("'{}' added as stream source.", id);
-            } else {
-                log.debug("Source handler doesn't handle {}", item.toString());
-            }
-        }
-        return sources;
     }
 
     /**
@@ -358,6 +312,51 @@ public class FlinkStreamTopology {
         for (String queue : allQueues) {
             sources.put(queue, split.select(queue));
         }
+    }
+
+    /**
+     * Inspect attributes of the given element whether they contain special attribute to define
+     * level of parallelism. If nothing defined, return 1.
+     *
+     * @param element part of xml
+     * @return level of parallelism defined in xml if attribute found; otherwise: 1
+     */
+    private static int getParallelism(Element element) {
+        if (element.hasAttribute(Constants.NUM_WORKERS)) {
+            try {
+                return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
+            } catch (NumberFormatException ex) {
+                log.error("Unable to parse defined level of parallelism: {}\n" +
+                                "Returning default parallelism level: {}",
+                        element.getAttribute(Constants.NUM_WORKERS), Constants.DEFAULT_PARALLELISM);
+            }
+        }
+        return Constants.DEFAULT_PARALLELISM;
+    }
+
+    /**
+     * Search for application id in application and container tags. Otherwise produce random UUID.
+     *
+     * @param doc XML document
+     * @return application id extracted from the ID attribute or random UUID if no ID attribute
+     * present
+     */
+    private static String getAppId(Document doc) {
+        String appId = "application:" + UUID.randomUUID().toString();
+
+        // try to find application or container tags
+        NodeList nodeList = doc.getElementsByTagName("application");
+        if (nodeList.getLength() < 1) {
+            nodeList = doc.getElementsByTagName("container");
+        }
+
+        // do there exist more than one application or container tags?
+        if (nodeList.getLength() > 1) {
+            log.error("More than 1 application node.");
+        } else {
+            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
+        }
+        return appId;
     }
 }
 

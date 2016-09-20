@@ -33,7 +33,7 @@ public class FlinkStatefulProcessList extends FlinkProcessList {
     private transient ValueState<FlinkContext> state;
 
     @Override
-    protected void init() throws Exception {
+    public void init() throws Exception {
         // add process identifier using localhost name and some random unique identifier
         String id = element.getAttribute("id") + "@"
                 + InetAddress.getLocalHost().getCanonicalHostName() + "-" + UUID.randomUUID();

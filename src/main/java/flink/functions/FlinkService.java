@@ -47,7 +47,7 @@ public class FlinkService extends StreamsFlinkObject implements Function {
     }
 
     @Override
-    protected void init() throws Exception {
+    public void init() throws Exception {
         log.debug("Creating new service implementation from class {}", element.getAttribute("class"));
         ObjectFactory obf = ObjectFactory.newInstance();
         obf.addVariables(variables);

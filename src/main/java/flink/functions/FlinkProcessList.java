@@ -109,7 +109,7 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
     }
 
     @Override
-    protected void init() throws Exception {
+    public void init() throws Exception {
         // add process identifier using localhost name and some random unique identifier
         String id = element.getAttribute("id") + "@"
                 + InetAddress.getLocalHost().getCanonicalHostName() + "-" + UUID.randomUUID();
@@ -122,12 +122,17 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
             }
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                process.finish();
-                log.info("Processor has been finished.");
-            } catch (Exception e) {
-                log.error("Processor could not have been finished: {}", e.getMessage());
+        // add shutdown hook in order to finish the processors
+        // this is important for statefull processors such as streams.performance
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    process.finish();
+                    log.info("Processor has been finished.");
+                } catch (Exception e) {
+                    log.error("Processor could not have been finished: {}", e.getMessage());
+                }
             }
         }));
         log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
