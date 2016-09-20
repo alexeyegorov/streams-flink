@@ -191,6 +191,8 @@ public class FlinkStreamTopology {
                                 // each data stream without any following queue can do a rescale
                                 // meaning that previous exec. plan will be rescaled
                                 .rescale()
+                                //TODO add keyBy support
+//                                .keyBy(data -> (String) data.get("key"))
                                 // apply the processors
                                 .flatMap(function)
                                 // set the level of parallelism
