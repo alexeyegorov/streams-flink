@@ -34,17 +34,7 @@ public class FlinkStatefulProcessList extends FlinkProcessList {
 
     @Override
     public void init() throws Exception {
-        // add process identifier using localhost name and some random unique identifier
-        String id = element.getAttribute("id") + "@"
-                + InetAddress.getLocalHost().getCanonicalHostName() + "-" + UUID.randomUUID();
-        element.setAttribute("id", id);
-        context.set("process", id);
-        process = createProcess();
-        for (Processor p : process.getProcessors()) {
-            if (p instanceof StatefulProcessor) {
-                ((StatefulProcessor) p).init(context);
-            }
-        }
+        super.init();
 
         //TODO: move this implementation outside this class
         state = new ValueState<FlinkContext>() {
@@ -69,15 +59,6 @@ public class FlinkStatefulProcessList extends FlinkProcessList {
             }
         };
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                process.finish();
-                log.info("Processor has been finished.");
-            } catch (Exception e) {
-                log.error("Processor could not have been finished: {}", e.getMessage());
-            }
-        }));
-
         log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
     }
 
@@ -85,15 +66,7 @@ public class FlinkStatefulProcessList extends FlinkProcessList {
     public void flatMap(Data data, Collector<Data> collector) throws Exception {
         if (data != null) {
             context = state.value();
-
-            process.process(data);
-
-            // go through all queues and collect written data items
-            for (FlinkQueue q : flinkQueues) {
-                while (q.getSize() > 0) {
-                    collector.collect(q.read());
-                }
-            }
+            super.flatMap(data, collector);
             state.update((FlinkContext) context);
         }
     }
