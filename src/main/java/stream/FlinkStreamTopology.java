@@ -1,5 +1,6 @@
 package stream;
 
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
@@ -63,6 +64,7 @@ public class FlinkStreamTopology {
     public FlinkStreamTopology(Document doc) {
         this.doc = doc;
         this.env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
     }
 
     public Variables getVariables() {
@@ -232,7 +234,7 @@ public class FlinkStreamTopology {
                         DataStream<Data> dataStream = sources.get(input)
                                 // each data stream without any following queue can do a rescale
                                 // meaning that previous exec. plan will be rescaled
-                                .rescale()
+//                                .rescale()
                                 //TODO add keyBy support
 //                                .keyBy(data -> (String) data.get("key"))
                                 // apply the processors
