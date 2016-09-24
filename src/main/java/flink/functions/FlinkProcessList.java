@@ -135,7 +135,8 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
                 }
             }
         }));
-        log.info("Initializing ProcessorList {} with element.id {}", process, element.getAttribute("id"));
+        log.info("Initializing ProcessorList {} with element.id {}",
+                process, element.getAttribute("id"));
     }
 
     /**

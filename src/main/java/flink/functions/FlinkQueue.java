@@ -7,6 +7,7 @@ import org.w3c.dom.Element;
 
 import java.util.Collection;
 
+import stream.Constants;
 import stream.Data;
 import stream.FlinkStreamTopology;
 import stream.io.Queue;
@@ -19,6 +20,7 @@ import stream.util.Variables;
  *
  * @author alexey
  */
+//TODO: replace Function with Serializable
 public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
 
     static Logger log = LoggerFactory.getLogger(FlinkQueue.class);
@@ -94,16 +96,14 @@ public class FlinkQueue extends StreamsFlinkObject implements Function, Queue {
 
     @Override
     public boolean write(Data item) throws Exception {
-        //TODO: move to constants
-        item.put("flink.queue", id);
+        item.put(Constants.FLINK_QUEUE, id);
         return queue.write(item);
     }
 
     @Override
     public boolean write(Collection<Data> data) throws Exception {
         for (Data item : data) {
-            //TODO: move to constants
-            item.put("flink.queue", id);
+            item.put(Constants.FLINK_QUEUE, id);
         }
         return queue.write(data);
     }
