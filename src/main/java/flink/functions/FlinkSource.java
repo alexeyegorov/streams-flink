@@ -1,5 +1,6 @@
 package flink.functions;
 
+import org.apache.flink.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -25,7 +26,7 @@ public class FlinkSource extends StreamsFlinkSourceObject {
     /**
      * Stream processor embedded inside of SourceFunction
      */
-    private Stream streamProcessor;
+    private transient Stream stream;
 
     /**
      * Flag to stop retrieving elements from the source.
@@ -50,42 +51,54 @@ public class FlinkSource extends StreamsFlinkSourceObject {
     public FlinkSource(Variables variables, Element element) {
         this.variables = variables;
         this.el = element;
+        init();
         log.debug("Source for '" + el + "' initialized.");
+    }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        super.open(parameters);
+        init();
+        log.info("Start initialization of the flink source.");
+        //TODO: do not need to implement StreamsObject
     }
 
     /**
      * init() is called inside of super class' readResolve() method.
      */
-    public void init() throws Exception {
-        streamProcessor = StreamFactory.createStream(ObjectFactory.newInstance(), el, variables);
-        streamProcessor.init();
+    public void init() {
+        try {
+            stream = StreamFactory.createStream(ObjectFactory.newInstance(), el, variables);
+
+            // if this is a distributed stream, then handle the parallelism level
+            if (stream instanceof DistributedStream) {
+                DistributedStream parallelMultiStream = (DistributedStream) stream;
+                try {
+                    Class<?> aClass = parallelMultiStream.getClass();
+                    aClass.getMethod("handleParallelism", int.class, int.class);
+
+                    // retrieve number of tasks and number of this certain task from the context
+                    int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+                    int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
+
+                    // call the method to handle the parallelism level and then re-initialize the stream
+                    parallelMultiStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
+                    stream = parallelMultiStream;
+                    log.info("Perform streaming in parallel mode ({}/{}).",
+                            indexOfThisSubtask + 1, numberOfParallelSubtasks);
+                } catch (NoSuchMethodException exc) {
+                    log.info("Stream is not prepared to be handled in parallel.");
+                }
+            }
+            stream.init();
+        } catch (Exception exc) {
+            log.error("Initializing flink source stream failed during the creation phase.");
+        }
     }
 
     @Override
     public void run(SourceContext<Data> ctx) throws Exception {
-        // if this is a distributed stream, then handle the parallelism level
-        if (DistributedStream.class.isInstance(streamProcessor)) {
-            DistributedStream parallelMultiStream = (DistributedStream) streamProcessor;
-            try {
-                Class<?> aClass = parallelMultiStream.getClass();
-                aClass.getMethod("handleParallelism", int.class, int.class);
-
-                // retrieve number of tasks and number of this certain task from the context
-                int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-                int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
-
-                // call the method to handle the parallelism level and then re-initialize the stream
-                parallelMultiStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
-                streamProcessor = parallelMultiStream;
-                streamProcessor.init();
-                log.info("Perform streaming in parallel mode ({}/{}).",
-                        indexOfThisSubtask + 1, numberOfParallelSubtasks);
-            } catch (NoSuchMethodException exc) {
-                log.info("Stream is not prepared to be handled in parallel.");
-            }
-        }
-
-        if (streamProcessor == null) {
+        if (stream == null) {
             log.debug("Stream processor has not been initialized properly.");
             return;
         }
@@ -94,7 +107,7 @@ public class FlinkSource extends StreamsFlinkSourceObject {
             // Stream processor retrieves next element by calling readNext() method
             // stop if stream is finished and produces NULL
             try {
-                Data data = streamProcessor.read();
+                Data data = stream.read();
                 if (data != null) {
                     ctx.collect(data);
                 } else {
