@@ -218,7 +218,20 @@ public class FlinkStreamTopology {
                         log.error("Handler {} could not handle element {}.", handler, element);
                         return false;
                     }
-                    String input = element.getAttribute("input");
+
+                    // distinguish whether the input is coming through the 'input' attribute
+                    // or through the 'output' attribute of another processor
+                    String input;
+                    if (element.hasAttribute("input")){
+                        input = element.getAttribute("input");
+                    } else if (sources.containsKey(element.getAttribute("id"))){
+                        input = element.getAttribute("id");
+                    } else {
+                        // stop processing as not input or output to this process has been found
+                        log.error("It is not possible to find the stream to this process.");
+                        return false;
+                    }
+
                     log.info("--------------------------------------------------------------------------------");
                     if (ProcessListHandler.class.isInstance(handler)) {
                         // apply processors
@@ -231,13 +244,19 @@ public class FlinkStreamTopology {
                             continue;
                         }
 
-                        DataStream<Data> dataStream = sources.get(input)
-                                // each data stream without any following queue can do a rescale
-                                // meaning that previous exec. plan will be rescaled
-//                                .rescale()
-                                //TODO add keyBy support
-//                                .keyBy(data -> (String) data.get("key"))
-                                // apply the processors
+                        DataStream<Data> dataStream = sources.get(input);
+
+                        // group the stream by the given key
+                        if (function.getGroupBy() != null && !function.getGroupBy().trim().equals("")){
+                            dataStream = dataStream.keyBy(
+                                    data -> (String) data.get(function.getGroupBy()));
+                        }
+
+                        // each data stream without any following queue can do a rescale
+                        // meaning that previous exec. plan will be rescaled
+    //                                .rescale()
+                        // apply the processors
+                        dataStream = dataStream
                                 .flatMap(function)
                                 // set the level of parallelism
                                 .setParallelism(getParallelism(element))
@@ -247,10 +266,32 @@ public class FlinkStreamTopology {
                         // detect output queues
                         List<String> outputQueues = function.getListOfOutputQueues();
 
+                        boolean followingProcess = false;
                         // split the data stream if there are any queues used inside
                         // of process list
                         if (outputQueues.size() > 0) {
                             splitDataStream(sources, dataStream, outputQueues);
+                            followingProcess = true;
+                        }
+                        // if this element has 'output' attribute,
+                        // put the outcoming data stream into the list of the sources
+                        if (element.hasAttribute("output")) {
+                            String output = element.getAttribute("output");
+                            if (output.trim().length() > 0) {
+                                if (output.indexOf(",") > 0) {
+                                    for (String out : output.split(",")) {
+                                        sources.put(out, dataStream);
+                                    }
+                                } else {
+                                    sources.put(output, dataStream);
+                                }
+                            }
+                            followingProcess = true;
+                        }
+                        // if no further processors are used after this function,
+                        // then do a rescale
+                        if (!followingProcess) {
+                            dataStream.rescale();
                         }
                         anyFunctionFound = true;
                     }

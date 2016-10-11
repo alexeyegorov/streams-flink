@@ -61,6 +61,9 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
      */
     protected Element element;
 
+    private String groupBy;
+    private boolean hasOutput = false;
+
     /**
      * Process context is used for initialization and is realized here by using FlinkContext.
      */
@@ -75,6 +78,15 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         } else {
             processId = UUID.randomUUID().toString();
         }
+
+        if (el.hasAttribute("groupBy")) {
+            groupBy = el.getAttribute("groupBy");
+        }
+
+        if (el.hasAttribute("output")) {
+            hasOutput = true;
+        }
+
         this.context = new FlinkContext(processId);
         this.context.set(Constants.APPLICATION_ID,
                 streamTopology.variables.get(Constants.APPLICATION_ID));
@@ -94,10 +106,17 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         log.debug("Processors for '" + el + "' initialized.");
     }
 
+    public String getGroupBy() {
+        return groupBy;
+    }
+
     @Override
     public void flatMap(Data data, Collector<Data> collector) throws Exception {
         if (data != null) {
-            process.process(data);
+            Data item = this.process.process(data);
+            if (hasOutput) {
+                collector.collect(item);
+            }
 
             // go through all queues and collect written data items
             for (FlinkQueue q : flinkQueues) {
