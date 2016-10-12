@@ -33,6 +33,7 @@ public class QueueHandler extends FlinkConfigHandler {
             }
 
             //TODO handle parallelism?
+            // we do not really have parallelism?
 
             function = new FlinkQueue(st, el);
         }
