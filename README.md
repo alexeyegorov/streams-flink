@@ -3,7 +3,7 @@
 This project tries to slightly modify [streams-storm](https://bitbucket.org/cbockermann/streams-storm) project in order to adapt it to ``Flink``. This way we can achieve parsing of XML configuration files for ``streams framework`` and translating them into ``Flink`` topology.
 
 The XML definition of ``streams`` process has not been changed.
-We can still use ``copies`` attribute in ``<process ...>`` tag in order to controll the level of parallelism.
+We can still use ``copies`` attribute in ``<process ...>`` tag in order to control the level of parallelism.
 Each copy is then mapped to a task slot inside of the Flink cluster.
 We have support for ``services`` and ``queues``. 
 Each ``process``, e.g. as the following
