@@ -14,9 +14,9 @@
         <flink.scope>provided</flink.scope>
         <flink.mainclass>flink.deploy</flink.mainclass>
         <skipTests>true</skipTests>
-        <streams.version>0.9.26-SNAPSHOT</streams.version>
+        <streams.version>1.0.0</streams.version>
         <artifactid>streams-flink</artifactid>
-        <flink.version>(1.0.0,]</flink.version>
+        <flink.version>1.2.0</flink.version>
     </properties>
 
 
@@ -27,23 +27,6 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
     </repositories>
-
-    <!--<distributionManagement>-->
-    <!--<repository>-->
-    <!--<id>sonatype-releases</id>-->
-    <!--<name>sonatype Maven Staging Repository</name>-->
-    <!--<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-    <!--</repository>-->
-    <!--<snapshotRepository>-->
-    <!--<id>sonatype-snapshots</id>-->
-    <!--<name>sonatype Snapshot Repository</name>-->
-    <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-    <!--</snapshotRepository>-->
-    <!--<site>-->
-    <!--<id>jwall-site</id>-->
-    <!--<url>scp://jwall.org/var/www/sfb876.de/htdocs/streams-flink/</url>-->
-    <!--</site>-->
-    <!--</distributionManagement>-->
 
     <ciManagement>
         <system>Jenkins</system>
@@ -212,114 +195,42 @@
 
 
     <dependencies>
-        <!--<dependency>-->
-            <!--<groupId>de.sfb876</groupId>-->
-            <!--<artifactId>streams-cta</artifactId>-->
-            <!--<version>0.0.1-SNAPSHOT</version>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.apache.storm</groupId>-->
-                    <!--<artifactId>storm</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.apache.storm</groupId>-->
-                    <!--<artifactId>storm-core</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-hdfs</artifactId>
-            <version>0.0.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jwall</groupId>
-                    <artifactId>streams-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-api</artifactId>
             <version>${streams.version}</version>
         </dependency>
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-performance</artifactId>
-            <version>${streams.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>de.sfb876</groupId>
             <artifactId>streams-storm</artifactId>
-            <version>${streams.version}</version>
+            <version>[0.9.20,)</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
                     <groupId>*</groupId>
                 </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-spark</artifactId>
-            <version>${streams.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>fact-tools</artifactId>
-            <version>0.12.3</version>
-            <exclusions>
                 <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>fact-tools</artifactId>
                 </exclusion>
             </exclusions>
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>de.sfb876</groupId>-->
-                    <!--<artifactId>stream-runtime</artifactId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.sling</groupId>-->
-            <!--<artifactId>org.apache.sling.commons.json</artifactId>-->
-            <!--<version>2.0.2-incubator</version>-->
-        <!--</dependency>-->
 
         <!-- FLINK -->
 
-        <!--<dependency>-->
-            <!--<groupId>org.apache.flink</groupId>-->
-            <!--<artifactId>flink-clients_2.10</artifactId>-->
-            <!--<version>${flink.version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.apache.flink</groupId>-->
-            <!--<artifactId>flink-java</artifactId>-->
-            <!--<version>${flink.version}</version>-->
-        <!--</dependency>-->
-
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-storm_2.10</artifactId>
+            <artifactId>flink-clients_2.10</artifactId>
             <version>${flink.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-core</artifactId>
-            <version>(0.9.6,]</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_2.10</artifactId>
             <version>${flink.version}</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
@@ -500,6 +411,102 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <!--
+            use this to add the storm compatibility layer and process storm topology
+            -->
+            <id>storm-compatibility</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.flink</groupId>
+                    <artifactId>flink-storm_2.10</artifactId>
+                    <version>${flink.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.storm</groupId>
+                    <artifactId>storm-core</artifactId>
+                    <version>(0.9.6,]</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <!--
+            use this to add the performance package and measure performance of the processes
+            -->
+            <id>performance</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>streams-performance</artifactId>
+                    <version>${streams.version}</version>
+                </dependency>
+            </dependencies>
+
+        </profile>
+
+        <profile>
+            <!--
+            use this to add fact-tools
+            -->
+            <id>facttools</id>
+            <dependencies>
+                <dependency>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>fact-tools</artifactId>
+                    <version>0.11.1-SNAPSHOT</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <!--
+            add support for streams-hdfs
+            -->
+            <id>hdfs</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>streams-hdfs</artifactId>
+                    <version>0.0.4-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <!--
+            streams-spark enables support for parallel sources
+            -->
+            <id>streamsspark</id>
+
+            <dependencies>
+                <dependency>
+                    <groupId>de.sfb876</groupId>
+                    <artifactId>streams-spark</artifactId>
+                    <version>${streams.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>de.sfb876</groupId>
+                            <artifactId>fact-tools</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+
     </profiles>
 
 </project>
