@@ -119,7 +119,7 @@ public class FlinkStreamTopology {
      */
     public void executeTopology() throws Exception {
         // set level of parallelism for the job
-        env.setParallelism(getParallelism(doc.getDocumentElement()));
+        env.setParallelism(getParallelism(doc.getDocumentElement(), variables));
         // execute flink job if we were able to init all the functions
 //        System.out.println(env.getExecutionPlan());
         env.execute(getVariables().get(Constants.APPLICATION_ID));
@@ -173,7 +173,7 @@ public class FlinkStreamTopology {
                 }
                 DataStream<Data> source = env
                         .addSource(sourceHandler.getFunction(), id)
-                        .setParallelism(getParallelism(item))
+                        .setParallelism(getParallelism(item, variables))
                         .name(id);
 
                 // put this source into the hashmap
@@ -259,7 +259,7 @@ public class FlinkStreamTopology {
                         dataStream = dataStream
                                 .flatMap(function)
                                 // set the level of parallelism
-                                .setParallelism(getParallelism(element))
+                                .setParallelism(getParallelism(element, variables))
                                 // define the name for this process
                                 .name(element.getAttribute("id"));
 
@@ -364,10 +364,14 @@ public class FlinkStreamTopology {
      * @param element part of xml
      * @return level of parallelism defined in xml if attribute found; otherwise: 1
      */
-    private static int getParallelism(Element element) {
+    private static int getParallelism(Element element, Variables variables) {
         if (element.hasAttribute(Constants.NUM_WORKERS)) {
             try {
-                return Integer.valueOf(element.getAttribute(Constants.NUM_WORKERS));
+                String copies = element.getAttribute(Constants.NUM_WORKERS);
+                if (copies.contains("$")) {
+                    copies = variables.expand(copies);
+                }
+                return Integer.valueOf(copies);
             } catch (NumberFormatException ex) {
                 log.error("Unable to parse defined level of parallelism: {}\n" +
                                 "Returning default parallelism level: {}",
