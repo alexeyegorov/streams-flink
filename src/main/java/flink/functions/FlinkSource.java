@@ -43,6 +43,8 @@ public class FlinkSource extends StreamsFlinkSourceObject {
      */
     private Element el;
 
+    private static int localInitializationTaskIndex = 0;
+
     /**
      * Create new flink source object while saving XML's element with source configuration.
      *
@@ -78,8 +80,21 @@ public class FlinkSource extends StreamsFlinkSourceObject {
                     aClass.getMethod("handleParallelism", int.class, int.class);
 
                     // retrieve number of tasks and number of this certain task from the context
-                    int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-                    int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
+                    int indexOfThisSubtask = 0;
+                    int numberOfParallelSubtasks = 1;
+                    try {
+                        indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+                        numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
+                    } catch (Exception e) {
+                        if (el.hasAttribute("copies")) {
+                            String copies = el.getAttribute("copies");
+                            if (copies.contains("$")) {
+                                copies = variables.expand(copies);
+                            }
+                            numberOfParallelSubtasks = Integer.parseInt(copies);
+                        }
+                        indexOfThisSubtask = localInitializationTaskIndex++;
+                    }
 
                     // call the method to handle the parallelism level and then re-initialize the stream
                     parallelMultiStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
