@@ -30,7 +30,9 @@ import flink.config.SourceHandler;
 import flink.functions.FlinkProcessList;
 import flink.functions.FlinkQueue;
 import flink.functions.FlinkService;
+import stream.runtime.DependencyInjection;
 import stream.runtime.setup.factory.ObjectFactory;
+import stream.runtime.setup.handler.PropertiesHandler;
 import stream.util.Variables;
 import stream.util.XIncluder;
 
@@ -95,7 +97,7 @@ public class FlinkStreamTopology {
                 new StreamResult(new OutputStreamWriter(System.out, "UTF-8")));
 
         // handle properties and save them to variables
-        variables.addVariables(StreamTopology.handleProperties(doc, variables));
+        variables.addVariables(handleProperties(doc, variables));
 
         // handle <service.../>
         initFlinkServices(doc);
@@ -404,6 +406,33 @@ public class FlinkStreamTopology {
             appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
         }
         return appId;
+    }
+
+    /**
+     * Handle properties in XML file and add them to variables.
+     *
+     * @param doc       XML file as document
+     * @param variables map of variables
+     */
+    public static Variables handleProperties(Document doc, Variables variables) {
+        DependencyInjection dependencies = new DependencyInjection();
+        try {
+            PropertiesHandler handler = new PropertiesHandler();
+            handler.handle(null, doc, variables, dependencies);
+
+            if (log.isDebugEnabled()) {
+                log.debug("########################################################################");
+                log.debug("Found properties: {}", variables);
+                for (String key : variables.keySet()) {
+                    log.debug("   '{}' = '{}'", key, variables.get(key));
+                }
+                log.debug("########################################################################");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        return variables;
     }
 }
 
