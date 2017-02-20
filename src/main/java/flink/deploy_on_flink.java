@@ -1,11 +1,15 @@
 package flink;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.net.URL;
+import java.io.InputStream;
+import java.net.URI;
 
 import stream.DocumentEncoder;
 import stream.FlinkStreamTopology;
@@ -27,7 +31,7 @@ public class deploy_on_flink {
      *
      * @param url path to XML configuration
      */
-    public static void main(URL url) throws Exception {
+    public static void main(InputStream url) throws Exception {
         main(url, Long.MAX_VALUE);
     }
 
@@ -37,13 +41,13 @@ public class deploy_on_flink {
      * @param url  path to the XML configuration
      * @param time maximum time for a cluster to run
      */
-    public static void main(URL url, Long time) throws Exception {
+    public static void main(InputStream url, Long time) throws Exception {
         stream.runtime.StreamRuntime.loadUserProperties();
 
 //        System.setProperty("rlog.host", "127.0.0.1");
 //        System.setProperty("rlog.token", "ab09cfe1d60b602cb7600b5729da939f");
 
-        String xml = storm.run.createIDs(url.openStream());
+        String xml = storm.run.createIDs(url);
 
         Document doc = XMLUtils.parseDocument(xml);
 
@@ -73,11 +77,28 @@ public class deploy_on_flink {
             log.error("Missing file path to XML configuration of streams job to run.");
             return;
         }
-        File file = new File(args[0]);
-        if (!file.getAbsoluteFile().exists() || !file.exists()) {
-            log.error("Path to XML configuration is not valid: {}", file.toString());
-            return;
+
+        String url = args[0];
+        if (url.startsWith("hdfs:")) {
+            DistributedFileSystem dfs = new DistributedFileSystem();
+            String pathWithoutHDFS = url.substring("hdfs://".length());
+            URI uri = new URI("hdfs://" + pathWithoutHDFS.substring(0, pathWithoutHDFS.indexOf("/")));
+            Configuration conf = new Configuration();
+            conf.set("fs.defaultFS", "hdfs://" + uri.toString());
+            dfs.initialize(uri, conf);
+            Path path = new Path(url);
+            if (!dfs.exists(path)) {
+                log.error("Path to XML configuration is not valid: {}", path.toString());
+                return;
+            }
+            main(dfs.open(path));
+        } else {
+            File file = new File(url);
+            if (!file.getAbsoluteFile().exists() || !file.exists()) {
+                log.error("Path to XML configuration is not valid: {}", file.toString());
+                return;
+            }
+            main(file.toURI().toURL().openStream());
         }
-        main(file.toURI().toURL());
     }
 }
