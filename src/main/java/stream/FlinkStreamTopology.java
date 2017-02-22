@@ -254,9 +254,6 @@ public class FlinkStreamTopology {
                                     data -> (String) data.get(function.getGroupBy()));
                         }
 
-                        // each data stream without any following queue can do a rescale
-                        // meaning that previous exec. plan will be rescaled
-    //                                .rescale()
                         // apply the processors
                         dataStream = dataStream
                                 .flatMap(function)
@@ -293,6 +290,8 @@ public class FlinkStreamTopology {
                         // if no further processors are used after this function,
                         // then do a rescale
                         if (!followingProcess) {
+                            // each data stream without any following queue can do a rescale
+                            // meaning that previous exec. plan will be rescaled
                             dataStream.rescale();
                         }
                         anyFunctionFound = true;
@@ -334,25 +333,22 @@ public class FlinkStreamTopology {
                                         DataStream<Data> dataStream,
                                         List<String> outputQueues) {
         final List<String> allQueues = outputQueues;
-        SplitStream<Data> split = dataStream.split(new OutputSelector<Data>() {
-            @Override
-            public Iterable<String> select(Data data) {
-                List<String> queues = new ArrayList<>(allQueues.size());
-                try {
-                    if (data.containsKey(Constants.FLINK_QUEUE)) {
-                        String outputQueue = (String) data.get(Constants.FLINK_QUEUE);
-                        log.debug("flink.queue {}", outputQueue);
-                        for (String queue : allQueues) {
-                            if (queue.equals(outputQueue)) {
-                                queues.add(queue);
-                            }
+        SplitStream<Data> split = dataStream.split((OutputSelector<Data>) data -> {
+            List<String> queues = new ArrayList<>(allQueues.size());
+            try {
+                if (data.containsKey(Constants.FLINK_QUEUE)) {
+                    String outputQueue = (String) data.get(Constants.FLINK_QUEUE);
+                    log.debug("flink.queue {}", outputQueue);
+                    for (String queue : allQueues) {
+                        if (queue.equals(outputQueue)) {
+                            queues.add(queue);
                         }
                     }
-                } catch (NullPointerException ex) {
-                    log.error("Data item is empty.");
                 }
-                return queues;
+            } catch (NullPointerException ex) {
+                log.error("Data item is empty.");
             }
+            return queues;
         });
         for (String queue : allQueues) {
             sources.put(queue, split.select(queue));
