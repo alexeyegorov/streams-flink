@@ -1,4 +1,4 @@
-# Streams Flink #
+# Streams Flink [![Build Status](https://travis-ci.org/alexeyegorov/streams-flink.svg?branch=master)](https://travis-ci.org/alexeyegorov/streams-flink)
 
 This project tries to slightly modify [streams-storm](https://bitbucket.org/cbockermann/streams-storm) project in order to adapt it to ``Flink``. This way we can achieve parsing of XML configuration files for ``streams framework`` and translating them into ``Flink`` topology.
 
