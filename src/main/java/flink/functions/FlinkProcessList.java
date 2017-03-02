@@ -1,6 +1,6 @@
 package flink.functions;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import stream.util.Variables;
  *
  * @author alexey
  */
-public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunction<Data, Data> {
+public class FlinkProcessList extends RichFlatMapFunction<Data, Data> {
 
     private static Logger log = LoggerFactory.getLogger(FlinkProcessList.class);
 
@@ -127,7 +127,6 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
         }
     }
 
-    @Override
     public void init() throws Exception {
         // add process identifier using localhost name and some random unique identifier
         String id = element.getAttribute("id") + "@"
@@ -143,15 +142,12 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
 
         // add shutdown hook in order to finish the processors
         // this is important for statefull processors such as streams.performance
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    process.finish();
-                    log.info("Processor has been finished.");
-                } catch (Exception e) {
-                    log.error("Processor could not have been finished: {}", e.getMessage());
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                process.finish();
+                log.info("Processor has been finished.");
+            } catch (Exception e) {
+                log.error("Processor could not have been finished: {}", e.getMessage());
             }
         }));
         log.info("Initializing ProcessorList {} with element.id {}",
@@ -224,5 +220,22 @@ public class FlinkProcessList extends StreamsFlinkObject implements FlatMapFunct
             }
         }
         return output;
+    }
+
+    /**
+     * readResolve() is called every time an object has been deserialized. Inside of it init()
+     * method is called in order to provide right behaviour after deserialization.
+     *
+     * @return this object
+     */
+    public Object readResolve() throws Exception {
+        init();
+        return this;
+    }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        process.finish();
     }
 }
