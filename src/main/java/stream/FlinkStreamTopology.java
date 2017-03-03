@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -224,9 +225,9 @@ public class FlinkStreamTopology {
                     // distinguish whether the input is coming through the 'input' attribute
                     // or through the 'output' attribute of another processor
                     String input;
-                    if (element.hasAttribute("input")){
+                    if (element.hasAttribute("input")) {
                         input = element.getAttribute("input");
-                    } else if (sources.containsKey(element.getAttribute("id"))){
+                    } else if (sources.containsKey(element.getAttribute("id"))) {
                         input = element.getAttribute("id");
                     } else {
                         // stop processing as not input or output to this process has been found
@@ -249,7 +250,7 @@ public class FlinkStreamTopology {
                         DataStream<Data> dataStream = sources.get(input);
 
                         // group the stream by the given key
-                        if (function.getGroupBy() != null && !function.getGroupBy().trim().equals("")){
+                        if (function.getGroupBy() != null && !function.getGroupBy().trim().equals("")) {
                             dataStream = dataStream.keyBy(
                                     data -> (String) data.get(function.getGroupBy()));
                         }
@@ -399,7 +400,14 @@ public class FlinkStreamTopology {
         if (nodeList.getLength() > 1) {
             log.error("More than 1 application node.");
         } else {
-            appId = nodeList.item(0).getAttributes().getNamedItem("id").getNodeValue();
+            NamedNodeMap attributes = nodeList.item(0).getAttributes();
+            try {
+                Node id = attributes.getNamedItem("id");
+                appId = id.getNodeValue();
+            } catch (NullPointerException nullExcp) {
+                log.info("No ID set for the processing task. Creating random UUID instead...");
+                appId = UUID.randomUUID().toString();
+            }
         }
         return appId;
     }
