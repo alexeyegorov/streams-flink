@@ -229,23 +229,6 @@
             <version>${streams.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-storm</artifactId>
-            <version>[0.9.20,)</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>*</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>de.sfb876</groupId>
-                    <artifactId>fact-tools</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- FLINK -->
 
         <dependency>
@@ -262,12 +245,6 @@
             <scope>compile</scope>
         </dependency>
 
-        <!--REMOVE THIS when distributed stream is available as a standalone package-->
-        <dependency>
-            <groupId>de.sfb876</groupId>
-            <artifactId>streams-spark</artifactId>
-            <version>${streams.version}-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <profiles>
@@ -510,27 +487,6 @@
                     <groupId>de.sfb876</groupId>
                     <artifactId>streams-hdfs</artifactId>
                     <version>0.0.4-SNAPSHOT</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <!--
-            streams-spark enables support for parallel sources
-            -->
-            <id>streamsspark</id>
-
-            <dependencies>
-                <dependency>
-                    <groupId>de.sfb876</groupId>
-                    <artifactId>streams-spark</artifactId>
-                    <version>${streams.version}-SNAPSHOT</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>de.sfb876</groupId>
-                            <artifactId>fact-tools</artifactId>
-                        </exclusion>
-                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>
