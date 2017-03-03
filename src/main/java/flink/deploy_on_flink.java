@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 
-import stream.DocumentEncoder;
 import stream.FlinkStreamTopology;
 import stream.util.XMLUtils;
 
@@ -43,9 +42,6 @@ public class deploy_on_flink {
      */
     public static void main(InputStream url, Long time) throws Exception {
         stream.runtime.StreamRuntime.loadUserProperties();
-
-//        System.setProperty("rlog.host", "127.0.0.1");
-//        System.setProperty("rlog.token", "ab09cfe1d60b602cb7600b5729da939f");
 
         String xml = storm.run.createIDs(url);
 
