@@ -46,7 +46,7 @@ import stream.runtime.setup.factory.ProcessorFactory.ProcessorCreationHandler;
  */
 public class QueueInjection implements ProcessorCreationHandler {
 
-    static Logger log = LoggerFactory.getLogger(stream.storm.QueueInjection.class);
+    static Logger log = LoggerFactory.getLogger(QueueInjection.class);
 
     /**
      * List of FlinkQueues used as wrapper for real queue implementations.

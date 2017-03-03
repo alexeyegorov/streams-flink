@@ -6,10 +6,26 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import stream.FlinkStreamTopology;
 import stream.util.XMLUtils;
@@ -43,7 +59,7 @@ public class deploy_on_flink {
     public static void main(InputStream url, Long time) throws Exception {
         stream.runtime.StreamRuntime.loadUserProperties();
 
-        String xml = storm.run.createIDs(url);
+        String xml = createIDs(url);
 
         Document doc = XMLUtils.parseDocument(xml);
 
@@ -95,6 +111,68 @@ public class deploy_on_flink {
                 return;
             }
             main(file.toURI().toURL().openStream());
+        }
+    }
+
+
+    public final static String UUID_ATTRIBUTE = "id";
+
+    final static Set<String> requiresID = new HashSet<>();
+
+    static {
+        requiresID.add("process");
+        requiresID.add("stream");
+        requiresID.add("queue");
+    }
+
+    /**
+     * Create IDs for each processor (bolt).
+     *
+     * @param in input stream (xml file)
+     * @return input stream as String with added IDs
+     */
+    public static String createIDs(InputStream in) throws Exception {
+
+        // parse input stream to a document (xml)
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document doc = builder.parse(in);
+
+        // add IDs
+        addUUIDAttributes(doc.getDocumentElement());
+
+        // write document to string
+        Transformer trans = TransformerFactory.newInstance().newTransformer();
+        Source source = new DOMSource(doc);
+        StringWriter out = new StringWriter();
+        Result output = new StreamResult(out);
+        trans.transform(source, output);
+
+        return out.toString();
+    }
+
+    /**
+     * Add to each attribute (processor, later bolt) an ID.
+     *
+     * @param element xml element
+     */
+    public static void addUUIDAttributes(Element element) {
+
+        if (requiresID.contains(element.getTagName())) {
+            String theId = element.getAttribute("id");
+            log.info("   attribute '{}' for element '{}' is: " + theId, "id", element.getTagName());
+            if (theId == null || theId.trim().isEmpty()) {
+                UUID id = UUID.randomUUID();
+                log.info("Adding UUID attribute to {}", element.getTagName());
+                element.setAttribute(UUID_ATTRIBUTE, id.toString());
+            }
+        }
+
+        NodeList list = element.getChildNodes();
+        for (int i = 0; i < list.getLength(); i++) {
+            Node node = list.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                addUUIDAttributes((Element) node);
+            }
         }
     }
 }

@@ -8,11 +8,11 @@ import org.w3c.dom.Element;
 import java.io.IOException;
 
 import stream.Data;
-import stream.DistributedStream;
 import stream.io.Stream;
 import stream.runtime.setup.factory.ObjectFactory;
 import stream.runtime.setup.factory.StreamFactory;
 import stream.util.Variables;
+import streams.io.parallel.ParallelStream;
 
 /**
  * Own source implementation to embed stream processor from 'streams framework'
@@ -73,10 +73,10 @@ public class FlinkSource extends StreamsFlinkSourceObject {
             stream = StreamFactory.createStream(ObjectFactory.newInstance(), el, variables);
 
             // if this is a distributed stream, then handle the parallelism level
-            if (stream instanceof DistributedStream) {
-                DistributedStream parallelMultiStream = (DistributedStream) stream;
+            if (stream instanceof ParallelStream) {
+                ParallelStream parallelStream = (ParallelStream) stream;
                 try {
-                    Class<?> aClass = parallelMultiStream.getClass();
+                    Class<?> aClass = parallelStream.getClass();
                     aClass.getMethod("handleParallelism", int.class, int.class);
 
                     // retrieve number of tasks and number of this certain task from the context
@@ -97,8 +97,8 @@ public class FlinkSource extends StreamsFlinkSourceObject {
                     }
 
                     // call the method to handle the parallelism level and then re-initialize the stream
-                    parallelMultiStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
-                    stream = parallelMultiStream;
+                    parallelStream.handleParallelism(indexOfThisSubtask, numberOfParallelSubtasks);
+                    stream = parallelStream;
                     log.info("Perform streaming in parallel mode ({}/{}).",
                             indexOfThisSubtask + 1, numberOfParallelSubtasks);
                 } catch (NoSuchMethodException exc) {
