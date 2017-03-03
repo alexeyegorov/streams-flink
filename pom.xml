@@ -233,6 +233,7 @@
             <groupId>de.sfb876</groupId>
             <artifactId>streams-storm</artifactId>
             <version>[0.9.20,)</version>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
