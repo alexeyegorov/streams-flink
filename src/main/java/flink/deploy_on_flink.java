@@ -57,8 +57,6 @@ public class deploy_on_flink {
      * @param time maximum time for a cluster to run
      */
     public static void main(InputStream url, Long time) throws Exception {
-        stream.runtime.StreamRuntime.loadUserProperties();
-
         String xml = createIDs(url);
 
         Document doc = XMLUtils.parseDocument(xml);

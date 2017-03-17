@@ -100,6 +100,8 @@ public class FlinkStreamTopology {
         // handle properties and save them to variables
         variables.addVariables(handleProperties(doc, variables));
 
+        stream.runtime.StreamRuntime.loadUserProperties();
+
         // handle <service.../>
         initFlinkServices(doc);
 
