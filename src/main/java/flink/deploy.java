@@ -1,105 +1,176 @@
-///*
-// *  streams library
-// *
-// *  Copyright (C) 2011-2014 by Christian Bockermann, Hendrik Blom
-// *
-// *  streams is a library, API and runtime environment for processing high
-// *  volume data streams. It is composed of three submodules "stream-api",
-// *  "stream-core" and "stream-runtime".
-// *
-// *  The streams library (and its submodules) is free software: you can
-// *  redistribute it and/or modify it under the terms of the
-// *  GNU Affero General Public License as published by the Free Software
-// *  Foundation, either version 3 of the License, or (at your option) any
-// *  later version.
-// *
-// *  The stream.ai library (and its submodules) is distributed in the hope
-// *  that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-// *  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// *  GNU Affero General Public License for more details.
-// *
-// *  You should have received a copy of the GNU Affero General Public License
-// *  along with this program.  If not, see http://www.gnu.org/licenses/.
-// */
-//package flink;
-//
-//import org.apache.storm.Config;
-//import org.apache.storm.topology.TopologyBuilder;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.w3c.dom.Document;
-//import org.w3c.dom.Element;
-//
-//import java.io.File;
-//import java.net.URL;
-//import java.util.List;
-//import java.util.Properties;
-//import java.util.UUID;
-//
-//import stream.StreamTopology;
-//import stream.runtime.StreamRuntime;
-//import stream.Constants;
-//import stream.util.XMLUtils;
-//
-//import static storm.deploy.handleArgs;
-//
-///**
-// * Main method to run deployment process of flink topology that is transformed from streams
-// * configuration in XML format into a storm topology.
-// *
-// * @author chris, alexey
-// */
-//public class deploy {
-//
-//    static Logger log = LoggerFactory.getLogger(deploy.class);
-//
-//    /**
-//     * @param args
-//     */
-//    public static void main(String[] args) {
-//        try {
-//            stream.runtime.StreamRuntime.loadUserProperties();
-//            StreamRuntime.setupLogging();
-//            final Properties properties = new Properties();
-//            properties.putAll(System.getProperties());
-//            final List<String> params = handleArgs(args, properties);
-//
-//            if (params.isEmpty()) {
-//                System.err.println("You need to specify an XML configuration!");
-//                System.exit(-1);
-//            }
-//
-//            Config config = storm.deploy.readConfiguration(properties);
-//
-//            URL url = new File(params.get(0)).toURI().toURL();
-//            log.info("Creating topology with config from '{}'", url);
-//
-//            Document doc = XMLUtils.parseDocument(url.openStream());
-//            Element root = doc.getDocumentElement();
-//            String id = root.getAttribute("id");
-//            log.info("Container/topology ID is: '{}'", id);
-//
-//            // retrieve number of workers to be used
-//            String numWorkers = root.getAttribute(Constants.NUM_WORKERS);
-//            if (!numWorkers.equals("")) {
-//                log.info("Topology should use {} workers.", numWorkers);
-//                int workers = Integer.valueOf(numWorkers);
-//                config.setNumWorkers(workers);
-//            }
-//
-//            TopologyBuilder stormBuilder = new TopologyBuilder();
-//            StreamTopology topology = StreamTopology.build(doc, stormBuilder);
-//
-//            String name = id;
-//            if (id == null || id.trim().isEmpty()) {
-//                name = UUID.randomUUID().toString().toLowerCase();
-//            }
-//
-//            log.info("Submitting topology '{}'", name);
-////            FlinkSubmitter.submitTopology(name, config, FlinkTopology.createTopology(stormBuilder));
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//}
+package flink;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import stream.FlinkStreamTopology;
+import stream.util.XMLUtils;
+
+/**
+ * Build and run Flink topology locally or deploy jar with this class as mainclass to your cluster.
+ *
+ * @author alexey
+ */
+public class deploy {
+
+
+    static Logger log = LoggerFactory.getLogger(deploy.class);
+
+    /**
+     * Method to start cluster and run XML configuration as flink topology on it while setting the
+     * maximum running time to Long.MAX_VALUE.
+     *
+     * @param url path to XML configuration
+     */
+    public static void main(InputStream url) throws Exception {
+        main(url, Long.MAX_VALUE);
+    }
+
+    /**
+     * Parse XML configuration, create flink topology out of it and run it for some given time.
+     *
+     * @param url  path to the XML configuration
+     * @param time maximum time for a cluster to run
+     */
+    public static void main(InputStream url, Long time) throws Exception {
+        String xml = createIDs(url);
+
+        Document doc = XMLUtils.parseDocument(xml);
+
+        log.info("Encoding document...");
+        String enc = DocumentEncoder.encodeDocument(doc);
+        log.info("Arg will be:\n{}", enc);
+
+        Document decxml = DocumentEncoder.decodeDocument(enc);
+        log.info("Decoded XML is: {}", XMLUtils.toString(decxml));
+
+        FlinkStreamTopology flinkStreamTopology = new FlinkStreamTopology(doc);
+
+        if (flinkStreamTopology.createTopology()) {
+            flinkStreamTopology.executeTopology();
+        } else {
+            log.info("Do not execute as there were errors while building the topology.");
+        }
+    }
+
+    /**
+     * Entry main method that extracts file path to XML configuration.
+     *
+     * @param args list of parameters
+     */
+    public static void main(String[] args) throws Exception {
+        if (args.length < 1) {
+            log.error("Missing file path to XML configuration of streams job to run.");
+            return;
+        }
+
+        String url = args[0];
+        if (url.startsWith("hdfs:")) {
+            DistributedFileSystem dfs = new DistributedFileSystem();
+            String pathWithoutHDFS = url.substring("hdfs://".length());
+            URI uri = new URI("hdfs://" + pathWithoutHDFS.substring(0, pathWithoutHDFS.indexOf("/")));
+            Configuration conf = new Configuration();
+            conf.set("fs.defaultFS", "hdfs://" + uri.toString());
+            dfs.initialize(uri, conf);
+            Path path = new Path(url);
+            if (!dfs.exists(path)) {
+                log.error("Path to XML configuration is not valid: {}", path.toString());
+                return;
+            }
+            main(dfs.open(path));
+        } else {
+            File file = new File(url);
+            if (!file.getAbsoluteFile().exists() || !file.exists()) {
+                log.error("Path to XML configuration is not valid: {}", file.toString());
+                return;
+            }
+            main(file.toURI().toURL().openStream());
+        }
+    }
+
+
+    public final static String UUID_ATTRIBUTE = "id";
+
+    final static Set<String> requiresID = new HashSet<>();
+
+    static {
+        requiresID.add("process");
+        requiresID.add("stream");
+        requiresID.add("queue");
+    }
+
+    /**
+     * Create IDs for each processor (bolt).
+     *
+     * @param in input stream (xml file)
+     * @return input stream as String with added IDs
+     */
+    public static String createIDs(InputStream in) throws Exception {
+
+        // parse input stream to a document (xml)
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document doc = builder.parse(in);
+
+        // add IDs
+        addUUIDAttributes(doc.getDocumentElement());
+
+        // write document to string
+        Transformer trans = TransformerFactory.newInstance().newTransformer();
+        Source source = new DOMSource(doc);
+        StringWriter out = new StringWriter();
+        Result output = new StreamResult(out);
+        trans.transform(source, output);
+
+        return out.toString();
+    }
+
+    /**
+     * Add to each attribute (processor, later bolt) an ID.
+     *
+     * @param element xml element
+     */
+    public static void addUUIDAttributes(Element element) {
+
+        if (requiresID.contains(element.getTagName())) {
+            String theId = element.getAttribute("id");
+            log.info("   attribute '{}' for element '{}' is: " + theId, "id", element.getTagName());
+            if (theId == null || theId.trim().isEmpty()) {
+                UUID id = UUID.randomUUID();
+                log.info("Adding UUID attribute to {}", element.getTagName());
+                element.setAttribute(UUID_ATTRIBUTE, id.toString());
+            }
+        }
+
+        NodeList list = element.getChildNodes();
+        for (int i = 0; i < list.getLength(); i++) {
+            Node node = list.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                addUUIDAttributes((Element) node);
+            }
+        }
+    }
+}

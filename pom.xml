@@ -290,7 +290,7 @@
 
             <properties>
                 <flink.scope>compile</flink.scope>
-                <flink.mainclass>flink.deploy_on_flink</flink.mainclass>
+                <flink.mainclass>flink.deploy</flink.mainclass>
             </properties>
 
             <build>
