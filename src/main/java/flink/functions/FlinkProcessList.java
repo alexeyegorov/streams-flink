@@ -141,7 +141,7 @@ public class FlinkProcessList extends RichFlatMapFunction<Data, Data> {
         }
 
         // add shutdown hook in order to finish the processors
-        // this is important for statefull processors such as streams.performance
+        // this is important for stateful processors such as streams.performance
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 process.finish();
@@ -161,6 +161,10 @@ public class FlinkProcessList extends RichFlatMapFunction<Data, Data> {
      */
     protected ProcessorList createProcess() throws Exception {
         ObjectFactory obf = ObjectFactory.newInstance();
+
+        //TODO: do we need to add more stuff here?
+        variables.put("copy.id", (String)context.get("process"));
+
         obf.addVariables(variables);
         ProcessorFactory pf = new ProcessorFactory(obf);
 
