@@ -1,5 +1,8 @@
 package stream;
 
+import com.twitter.chill.protobuf.ProtobufSerializer;
+import com.twitter.chill.thrift.TBaseSerializer;
+
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -81,6 +84,39 @@ public class FlinkStreamTopology {
     public boolean createTopology() throws Exception {
         // search for 'application' or 'container' tag and extract its ID
         variables.put(Constants.APPLICATION_ID, getAppId(doc));
+
+        // add serializer
+        // try to find application or container tags
+        // try to find application or container tags
+        NodeList nodeList = doc.getElementsByTagName("application");
+        if (nodeList.getLength() < 1) {
+            nodeList = doc.getElementsByTagName("container");
+        }
+
+        // do there exist more than one application or container tags?
+        if (nodeList.getLength() > 1) {
+            log.error("More than 1 application node.");
+        } else {
+            NamedNodeMap attributes = nodeList.item(0).getAttributes();
+            try {
+                Node serializer = attributes.getNamedItem("serializer");
+                String ser_name = serializer.getNodeValue();
+                if (ser_name.toLowerCase().equals("protobuf")) {
+                    log.info("Registering {} with Protobuf", stream.Data.class.toString());
+                    // register the Google Protobuf serializer with Kryo
+                    env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, ProtobufSerializer.class);
+                } else if (ser_name.toLowerCase().equals("thrift")) {
+                    log.info("Registering {} with Thrift", stream.Data.class.toString());
+                    env.getConfig().addDefaultKryoSerializer(stream.Data.class, TBaseSerializer.class);
+                } else {
+                    log.info("Registering {} with Kryo", stream.Data.class.toString());
+                    env.getConfig().registerKryoType(stream.Data.class);
+                }
+            } catch (NullPointerException nullExcp) {
+                log.info("Registering {} with Kryo", stream.Data.class.toString());
+                env.getConfig().registerKryoType(stream.Data.class);
+            }
+        }
 
         // handle <include.../>
         doc = new XIncluder().perform(doc, variables);
