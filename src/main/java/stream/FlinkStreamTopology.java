@@ -87,7 +87,6 @@ public class FlinkStreamTopology {
 
         // add serializer
         // try to find application or container tags
-        // try to find application or container tags
         NodeList nodeList = doc.getElementsByTagName("application");
         if (nodeList.getLength() < 1) {
             nodeList = doc.getElementsByTagName("container");
@@ -104,10 +103,17 @@ public class FlinkStreamTopology {
                 if (ser_name.toLowerCase().equals("protobuf")) {
                     log.info("Registering {} with Protobuf", stream.Data.class.toString());
                     // register the Google Protobuf serializer with Kryo
-                    env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, ProtobufSerializer.class);
+                    env.getConfig().addDefaultKryoSerializer(stream.Data.class, ProtobufSerializer.class);
+//                    env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, ProtobufSerializer.class);
+                    env.getConfig().disableGenericTypes();
                 } else if (ser_name.toLowerCase().equals("thrift")) {
                     log.info("Registering {} with Thrift", stream.Data.class.toString());
                     env.getConfig().addDefaultKryoSerializer(stream.Data.class, TBaseSerializer.class);
+                    env.getConfig().disableGenericTypes();
+                } else if (ser_name.toLowerCase().equals("avro")) {
+                    log.info("Registering {} with Avro", stream.Data.class.toString());
+                    env.getConfig().enableForceAvro();
+                    env.getConfig().disableGenericTypes();
                 } else {
                     log.info("Registering {} with Kryo", stream.Data.class.toString());
                     env.getConfig().registerKryoType(stream.Data.class);
@@ -117,6 +123,8 @@ public class FlinkStreamTopology {
                 env.getConfig().registerKryoType(stream.Data.class);
             }
         }
+
+        env.registerType(stream.Data.class);
 
         // handle <include.../>
         doc = new XIncluder().perform(doc, variables);
