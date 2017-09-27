@@ -124,7 +124,7 @@ public class FlinkStreamTopology {
             }
         }
 
-        env.registerType(stream.Data.class);
+//        env.registerType(stream.Data.class);
 
         // handle <include.../>
         doc = new XIncluder().perform(doc, variables);
