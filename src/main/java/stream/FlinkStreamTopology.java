@@ -1,5 +1,6 @@
 package stream;
 
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 import com.twitter.chill.protobuf.ProtobufSerializer;
 import com.twitter.chill.thrift.TBaseSerializer;
 
@@ -120,7 +121,8 @@ public class FlinkStreamTopology {
                 }
             } catch (NullPointerException nullExcp) {
                 log.info("Registering {} with Kryo", stream.Data.class.toString());
-                env.getConfig().registerKryoType(stream.Data.class);
+                env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, MapSerializer.class);
+//                env.getConfig().registerKryoType(stream.Data.class);
             }
         }
 
