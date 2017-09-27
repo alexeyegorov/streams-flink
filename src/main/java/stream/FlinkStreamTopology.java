@@ -105,11 +105,11 @@ public class FlinkStreamTopology {
                     // register the Google Protobuf serializer with Kryo
                     env.getConfig().addDefaultKryoSerializer(stream.Data.class, ProtobufSerializer.class);
 //                    env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, ProtobufSerializer.class);
-                    env.getConfig().disableGenericTypes();
+//                    env.getConfig().disableGenericTypes();
                 } else if (ser_name.toLowerCase().equals("thrift")) {
                     log.info("Registering {} with Thrift", stream.Data.class.toString());
                     env.getConfig().addDefaultKryoSerializer(stream.Data.class, TBaseSerializer.class);
-                    env.getConfig().disableGenericTypes();
+//                    env.getConfig().disableGenericTypes();
                 } else if (ser_name.toLowerCase().equals("avro")) {
                     log.info("Registering {} with Avro", stream.Data.class.toString());
                     env.getConfig().enableForceAvro();
