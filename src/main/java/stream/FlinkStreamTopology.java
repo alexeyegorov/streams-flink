@@ -278,11 +278,11 @@ public class FlinkStreamTopology {
                         return false;
                     }
 
-                    // allow rescale() as an optional value
-                    boolean rescale = false;
-                    if (element.hasAttribute("rescale")) {
-                        rescale = element.getAttribute("rescale").equals("true");
-                    }
+//                    // allow rescale() as an optional value
+//                    boolean rescale = false;
+//                    if (element.hasAttribute("rescale")) {
+//                        rescale = element.getAttribute("rescale").equals("true");
+//                    }
 
                     log.info("--------------------------------------------------------------------------------");
                     if (ProcessListHandler.class.isInstance(handler)) {
@@ -339,7 +339,7 @@ public class FlinkStreamTopology {
                         }
                         // if no further processors are used after this function,
                         // then do a rescale
-                        if (rescale) {
+                        if (!followingProcess) {
                             // each data stream without any following queue can do a rescale
                             // meaning that previous exec. plan will be rescaled
                             dataStream.rescale();
