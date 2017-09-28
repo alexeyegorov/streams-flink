@@ -104,14 +104,11 @@ public class FlinkStreamTopology {
                 if (ser_name.toLowerCase().equals("protobuf")) {
                     log.info("Registering {} with Protobuf", stream.Data.class.toString());
                     // register the Google Protobuf serializer with Kryo
-//                    env.getConfig().addDefaultKryoSerializer(stream.Data.class, ProtobufSerializer.class);
                     env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, ProtobufSerializer.class);
-//                    env.getConfig().disableGenericTypes();
                 } else if (ser_name.toLowerCase().equals("thrift")) {
                     log.info("Registering {} with Thrift", stream.Data.class.toString());
 //                    env.getConfig().addDefaultKryoSerializer(stream.Data.class, TBaseSerializer.class);
                     env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, TBaseSerializer.class);
-//                    env.getConfig().disableGenericTypes();
                 } else if (ser_name.toLowerCase().equals("avro")) {
                     log.info("Registering {} with Avro", stream.Data.class.toString());
                     env.getConfig().enableForceAvro();
@@ -123,11 +120,8 @@ public class FlinkStreamTopology {
             } catch (NullPointerException nullExcp) {
                 log.info("Registering {} with Kryo", stream.Data.class.toString());
                 env.getConfig().registerTypeWithKryoSerializer(stream.Data.class, MapSerializer.class);
-//                env.getConfig().registerKryoType(stream.Data.class);
             }
         }
-
-//        env.registerType(stream.Data.class);
 
         // handle <include.../>
         doc = new XIncluder().perform(doc, variables);
@@ -284,6 +278,12 @@ public class FlinkStreamTopology {
                         return false;
                     }
 
+                    // allow rescale() as an optional value
+                    boolean rescale = false;
+                    if (element.hasAttribute("rescale")) {
+                        rescale = element.getAttribute("rescale").equals("true");
+                    }
+
                     log.info("--------------------------------------------------------------------------------");
                     if (ProcessListHandler.class.isInstance(handler)) {
                         // apply processors
@@ -339,7 +339,7 @@ public class FlinkStreamTopology {
                         }
                         // if no further processors are used after this function,
                         // then do a rescale
-                        if (!followingProcess) {
+                        if (rescale) {
                             // each data stream without any following queue can do a rescale
                             // meaning that previous exec. plan will be rescaled
                             dataStream.rescale();
