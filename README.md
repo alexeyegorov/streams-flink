@@ -1,4 +1,4 @@
-# Streams Flink [![Build Status](https://travis-ci.org/alexeyegorov/streams-flink.svg?branch=master)](https://travis-ci.org/alexeyegorov/streams-flink)
+# Streams Flink [![CodeQL](https://github.com/alexeyegorov/streams-flink/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/alexeyegorov/streams-flink/actions/workflows/codeql-analysis.yml)
 
 This project tries to slightly modify [streams-storm](https://bitbucket.org/cbockermann/streams-storm) project in order to adapt it to Apache Flink (ver. 1.3.2). 
 This way we can achieve parsing of XML configuration files for ``streams framework`` and translating them into ``Flink`` topology.
